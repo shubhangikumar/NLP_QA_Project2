@@ -1,11 +1,9 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Apr 09 19:13:07 2015
-
-@author: Shubhangi
-"""
 import math
+import re
+import os
+import datetime
 from operator import itemgetter
+from nltk.corpus import stopwords
 
 def similarity(query_dict,top_docs_dict):
     query_no = query_dict.keys()
@@ -20,6 +18,8 @@ def similarity(query_dict,top_docs_dict):
         query_normalized = cosine_normalize(query_tf_idf)
         #return list of ngrams here and iterate over each n-gram
         keys_list_docs = doc_dict.keys()
+        fwrite = open("tempfile", "w+")
+       
         for l in range(len(doc_dict)):
             n_grams = doc_dict[keys_list_docs[l]]
             for n in range(len(n_grams)):
@@ -31,7 +31,10 @@ def similarity(query_dict,top_docs_dict):
                 dict_scores['phrase'] = n_grams[n]
                 dict_scores['score'] = score
                 list_scores.append(dict_scores)
-        newlist = sorted(list_scores, key=itemgetter('score'), reverse=True)        
+        newlist = sorted(list_scores, key=itemgetter('score'), reverse=True) 
+        for item in newlist:
+            fwrite.write("%s\n" % item)      
+        fwrite.close()
         
 def get_tf_idf(query_tf,idf_values):
     keys = query_tf.keys()
@@ -109,17 +112,127 @@ def calculate_dot_product(query,document):
         if(document.has_key(keys[k])):
             sum = sum + (query[keys[k]] * document[keys[k]] )
     return sum
+
+def getquerydict(questions_filename):
+    questions_file = open(questions_filename, "r")
     
+    stop = stopwords.words('english')
+    
+    query_dict = dict()
+    
+    for line in questions_file:
+        matchQueryNumber = re.match(r'Number: [0-9]+', line, re.M|re.I)
+        if matchQueryNumber:
+            qnum = matchQueryNumber.group(0).split()
+        else:
+            if line!="\n":
+                line=" ".join([w for w in line.split(" ") if not w in stop])
+                newline = re.compile(r'(\n)', re.UNICODE)
+                line = newline.sub('',line)
+                query_dict.update({qnum[1]:line})
+                
+    return query_dict
+
+def preprocessing(finalstr):
+    newline = re.compile(r'(\n)', re.UNICODE)
+    finalstr = newline.sub(' ',finalstr)
+    
+    multlinesMatch = re.compile(r'(\n)+', re.UNICODE)
+    finalstr = multlinesMatch.sub('',finalstr)
+    
+    punctuation = re.compile(r'[#,^&$\(\)\?";:\'`\[\]{}@\*\-+~=_]+', re.UNICODE)
+    finalstr = punctuation.sub('', finalstr)
+    
+    whitespace = re.compile(r'(\s)+', re.UNICODE)
+    finalstr = whitespace.sub(' ', finalstr)
+    
+    fullstop = re.compile(r'[.]+', re.UNICODE)
+    finalstr = fullstop.sub(' .', finalstr)
+    
+    return finalstr
+
+def getngrams(ngramterms):
+    ngram_list = []
+    for i in range(0, len(ngramterms) - 9):
+            if ngramterms[i] != "." and ngramterms[i+1] !="." and ngramterms[i+2] != "." and ngramterms[i+3] != "." and ngramterms[i+4] != "." and ngramterms[i+5] != "." and ngramterms[i+6] != "." and ngramterms[i+7] != "." and ngramterms[i+8] != ".":
+                ngram_list.append(ngramterms[i] + " " + ngramterms[i + 1] + " " + ngramterms[i + 2] + " " + ngramterms[i + 3] + " " + ngramterms[i + 4] + " " + ngramterms[i + 5] + " " + ngramterms[i + 6] + " " + ngramterms[i + 7] + " " + ngramterms[i + 8] + " " + ngramterms[i + 9])
+            '''
+            else :
+                if ngramterms[i] != "." :
+                    if ngramterms[i+1] == "." :
+                        ngram_list.append(ngramterms[i] + " " + ngramterms[i + 1])
+                    elif ngramterms[i+2] == "." :
+                        ngram_list.append(ngramterms[i] + " " + ngramterms[i + 1] + " " + ngramterms[i + 2])
+                    elif ngramterms[i+3] == "." :
+                        ngram_list.append(ngramterms[i] + " " + ngramterms[i + 1] + " " + ngramterms[i + 2] + " " + ngramterms[i + 3])
+                    elif ngramterms[i+4] == "." :
+                        ngram_list.append(ngramterms[i] + " " + ngramterms[i + 1] + " " + ngramterms[i + 2] + " " + ngramterms[i + 3] + " " + ngramterms[i + 4])
+                    elif ngramterms[i+5] == "." :
+                        ngram_list.append(ngramterms[i] + " " + ngramterms[i + 1] + " " + ngramterms[i + 2] + " " + ngramterms[i + 3] + " " + ngramterms[i + 4] + " " + ngramterms[i + 5])
+                    elif ngramterms[i+6] == "." :
+                        ngram_list.append(ngramterms[i] + " " + ngramterms[i + 1] + " " + ngramterms[i + 2] + " " + ngramterms[i + 3] + " " + ngramterms[i + 4] + " " + ngramterms[i + 5] + " " + ngramterms[i + 6])
+                    elif ngramterms[i+7] == "." :
+                        ngram_list.append(ngramterms[i] + " " + ngramterms[i + 1] + " " + ngramterms[i + 2] + " " + ngramterms[i + 3] + " " + ngramterms[i + 4] + " " + ngramterms[i + 5] + " " + ngramterms[i + 6] + " " + ngramterms[i + 7])
+                    elif ngramterms[i+8] == "." :
+                        ngram_list.append(ngramterms[i] + " " + ngramterms[i + 1] + " " + ngramterms[i + 2] + " " + ngramterms[i + 3] + " " + ngramterms[i + 4] + " " + ngramterms[i + 5] + " " + ngramterms[i + 6] + " " + ngramterms[i + 7] + " " + ngramterms[i + 8])
+            '''
+    return ngram_list
+
+def getTopDocsDict(pathTopDocs):
+    top_docs_dict = dict()
+    for name in os.listdir(pathTopDocs) :
+        docs_dict = dict()
+        
+        filename = pathTopDocs+name
+        parseDocNo = name.split(".")
+        docNo = parseDocNo[1]
+        
+        topDocsFile = open(filename, "r")
+        whole_data = topDocsFile.read()
+    
+        textMatch = re.compile(r'<TEXT>(.*?)</TEXT>', re.DOTALL)
+        completeText = textMatch.findall(whole_data)
+        
+        PTagsMatch = re.compile(r'<P>', re.DOTALL)
+        PEndTagsMatch = re.compile(r'</P>', re.DOTALL)
+        
+        index = 0;
+        for eachText in completeText:
+            eachText = PTagsMatch.sub('', eachText)
+            eachText = PEndTagsMatch.sub('', eachText)
+    
+            tempCompText = ""
+    
+            for line in eachText.splitlines():
+                tempText = preprocessing(line)
+                tempCompText += " "+tempText
+            
+            whitespace = re.compile(r'(\s)+', re.UNICODE)
+            tempCompText = whitespace.sub(' ', tempCompText)
+    
+            ngramterms = tempCompText.split()
+            ngram_list = getngrams(ngramterms)
+    
+            docs_dict.update({index:ngram_list})
+            index = index+1
+            
+        top_docs_dict.update({docNo:docs_dict})
+    
+    return top_docs_dict
+
 def main():
-    query_words_list = "Who found Cornell"
-    query_dict = {'0':query_words_list}
-    n_grams1 = ["Ezra Cornell found","Cornell found Cornell", "found Cornell University", "Cornell University in", "University in 1857" ]
-    n_grams2 = ["I am living","am living in" , "living in Ithaca"]
-    dict_test = {"Doc1" : n_grams1, "Doc2" : n_grams2}    
-    top_docs_dict = {'0': dict_test}
+    print "Process started", datetime.datetime.now().time()
+    questions_filename = "questions.txt"
+    pathTopDocs = "dev1/"  
+    
+    query_dict = getquerydict(questions_filename)
+    print "Query Dictionary Generated", datetime.datetime.now().time()
+    
+    top_docs_dict = getTopDocsDict(pathTopDocs)
+    print "Top Docs Dictionary Generated", datetime.datetime.now().time()
+    
     similarity(query_dict,top_docs_dict)
+    print "Process completed", datetime.datetime.now().time()
     
 if __name__ == "__main__":
-    main()      
-        
-        
+    main()   
