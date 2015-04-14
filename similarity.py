@@ -4,8 +4,11 @@ import os
 import datetime
 from operator import itemgetter
 from nltk.corpus import stopwords
+import nltk 
+from nltk import word_tokenize
+from nltk.tag.stanford import NERTagger
 
-entity_labels = {"HOW": ["LOCATION","PERSON", "TIME", "DATE", "MONEY", "PERCENT"], "WHAT": ["LOCATION","PERSON", "TIME", "DATE", "MONEY", "PERCENT"],"WHERE": ["LOCATION"], "WHO": ["PERSON", "ORGANIZATION"], "WHEN": ["TIME", "DATE"], "HOW MANY": ["COUNT","MONEY","PERCENT"],"WHICH":["LOCATION","PERSON", "TIME", "DATE", "MONEY", "PERCENT"]}
+entity_labels = {"How": ["LOCATION","PERSON", "TIME", "DATE", "MONEY", "PERCENT"], "What": ["LOCATION","PERSON", "TIME", "DATE", "MONEY", "PERCENT"],"WHERE": ["LOCATION"], "Who": ["PERSON", "ORGANIZATION"], "When": ["TIME", "DATE"], "How many": ["COUNT","MONEY","PERCENT"],"Which":["LOCATION","PERSON", "TIME", "DATE", "MONEY", "PERCENT"]}
 
 
 def similarity(query_dict,top_docs_dict):
@@ -38,6 +41,7 @@ def similarity(query_dict,top_docs_dict):
         for item in newlist:
             fwrite.write("%s\n" % item)      
         fwrite.close()
+        return list_scores
         
 def get_tf_idf(query_tf,idf_values):
     keys = query_tf.keys()
@@ -132,8 +136,7 @@ def getquerydict(questions_filename):
                 line=" ".join([w for w in line.split(" ") if not w in stop])
                 newline = re.compile(r'(\n)', re.UNICODE)
                 line = newline.sub('',line)
-                query_dict.update({qnum[1]:line})
-                
+                query_dict.update({qnum[1]:line})          
     return query_dict
 
 def preprocessing(finalstr):
@@ -223,10 +226,95 @@ def getTopDocsDict(pathTopDocs):
     
     return top_docs_dict
 
+
+# nltk stanford NER
+# Use this for now -- take a few seconds (a little slow)
+
+# nltk stanford NER -http://stackoverflow.com/questions/18371092/stanford-named-entity-recognizer-ner-functionality-with-nltk
+
+
+def queryForEntity(expectedEntity,passage,pathtoClassifier,pathtoNerjar):
+    st = NERTagger(pathtoClassifier,pathtoNerjar) 
+    answer=st.tag(passage.split()) 
+    answers=[]
+    for j,currentExpectedEntity in enumerate(expectedEntity):
+        for i,pair in enumerate(answer):
+            if(pair[1]==currentExpectedEntity):
+                answers.append(answer[i])   
+    return answers
+
+
+def getAnswers(list_scores,pathtoClassifier,pathtoNerjar,query_dict):
+    for query in query_dict: # for every query
+        cnt=0
+        # entity_labels doesn't yet have entries like What's    
+        Query=query_dict[query]
+        print Query
+        testHowMany = re.compile("How many") 
+        testHow=re.compile("How") 
+        testWhen=re.compile("When")
+        testWhich=re.compile("Which")
+        testWho=re.compile("Who")
+        testWhat=re.compile("What")
+        testWhere=re.compile("Where")
+        if testHow.match(Query):
+            expectedEntity=entity_labels["How"]
+        if testHowMany.match(Query):
+            expectedEntity=entity_labels["How many"]        
+        if testWhen.match(Query):
+            expectedEntity=entity_labels["When"]
+        if testWhich.match(Query):
+            expectedEntity=entity_labels["Which"]
+        if testWho.match(Query):
+            expectedEntity=entity_labels["Who"]
+        if testWhat.match(Query):
+            expectedEntity=entity_labels["What"]
+        if testWhere.match(Query):
+            expectedEntity=entity_labels["Where"]
+        print expectedEntity
+        #print "New query "
+        for currDict in list_scores: 
+            if cnt>10:
+                break
+            else:
+                currpassage=currDict['phrase']
+                answersList=[]
+                if expectedEntity!=[]:
+                    answersList=queryForEntity(expectedEntity,currpassage,pathtoClassifier,pathtoNerjar)
+                    #if len(answersList)!=0:
+                        #print "answer found shouldn't go to POS"
+                #else:
+                    #print "Couldnt find any matching entries in entity_labels dictory so didnt go for queryForEntity function"           
+                if len(answersList)==0:
+                    # since no answer was found from any of the exoected entities noun phrase extraction was done
+                    # Using POS tagging to get noun phrase
+                    #print "when answer list should be empty to come here"
+                    #print "ner is of no use doing POS tagging to get noun phrase"
+                    answer = word_tokenize(currpassage)
+                    answers=nltk.pos_tag(answer)
+                    print answers
+                    for i,pair in enumerate(answers):
+                        if(pair[1]=="NNP"):
+                            answersList.append(answer[i]) 
+                            cnt=cnt+1
+                            #print cnt
+                    print "answer found from noun pharases"
+                    print answersList                    
+                else:                     
+                    cnt=cnt+1  
+                    #print cnt
+                    print "answer using nltk.tag.stanford NERTagger" 
+                    print answersList
+
+        
+        
+    
+
 def main():
     print "Process started", datetime.datetime.now().time()
-    questions_filename = "questions.txt"
-    pathTopDocs = "dev1/"  
+    
+    questions_filename = ""
+    pathTopDocs = ""  
     
     query_dict = getquerydict(questions_filename)
     print "Query Dictionary Generated", datetime.datetime.now().time()
@@ -234,8 +322,16 @@ def main():
     top_docs_dict = getTopDocsDict(pathTopDocs)
     print "Top Docs Dictionary Generated", datetime.datetime.now().time()
     
-    similarity(query_dict,top_docs_dict)
+    list_scores=similarity(query_dict,top_docs_dict)
     print "Process completed", datetime.datetime.now().time()
+
+    # you have to install stanford ner (not the latest version unless u have java 1.8)
+    # change the paths"
+    
+    pathtoClassifier='/Users/srinisha/Downloads/stanford-ner-2014-06-16/classifiers/english.all.3class.distsim.crf.ser.gz'
+    pathtoNerjar='/Users/srinisha/Downloads/stanford-ner-2014-06-16/stanford-ner.jar'
+
+    getAnswers(list_scores,pathtoClassifier,pathtoNerjar,query_dict)
     
 if __name__ == "__main__":
     main()   
