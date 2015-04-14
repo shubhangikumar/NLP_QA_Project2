@@ -12,7 +12,8 @@ Give paths to the following:
    
    Should be in pa2-release/topdocs/dev/
   
-  Install stanford NER
+  Install stanford NER     # (not the latest version unless u have java 1.8)
+
   
   3. pathtoClassifier=""
       
