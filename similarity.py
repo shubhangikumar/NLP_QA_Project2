@@ -245,10 +245,14 @@ def queryForEntity(expectedEntity,passage,pathtoClassifier,pathtoNerjar):
 
 
 def getAnswers(list_scores,pathtoClassifier,pathtoNerjar,query_dict):
+    query_dict=collections.OrderedDict(sorted(query_dict.items()))
     for query in query_dict: # for every query
         cnt=0
-        # entity_labels doesn't yet have entries like What's    
+        # entity_labels doesn't yet have entries like What's  
         Query=query_dict[query]
+        QueryNo= query;
+        print "QueryNo"
+        print QueryNo
         print "Current Query"
         print Query
         testHowMany = re.compile("How many") 
