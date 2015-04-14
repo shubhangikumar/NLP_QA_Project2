@@ -10,7 +10,7 @@ from nltk import word_tokenize
 
 
 #or using nltk stanford NER
-# Use this for now -- take a few seconds (a little slow)
+# Use this for now - take a few seconds (a little slow)
 
 from nltk.tag.stanford import NERTagger
 def queryForEntity2(expectedEntity,passage):
