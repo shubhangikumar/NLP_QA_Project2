@@ -5,6 +5,9 @@ import datetime
 from operator import itemgetter
 from nltk.corpus import stopwords
 
+entity_labels = {"HOW": ["LOCATION","PERSON", "TIME", "DATE", "MONEY", "PERCENT"], "WHAT": ["LOCATION","PERSON", "TIME", "DATE", "MONEY", "PERCENT"],"WHERE": ["LOCATION"], "WHO": ["PERSON", "ORGANIZATION"], "WHEN": ["TIME", "DATE"], "HOW MANY": ["COUNT","MONEY","PERCENT"],"WHICH":["LOCATION","PERSON", "TIME", "DATE", "MONEY", "PERCENT"]}
+
+
 def similarity(query_dict,top_docs_dict):
     query_no = query_dict.keys()
     for i in range(len(query_no)):
