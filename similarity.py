@@ -295,7 +295,6 @@ def getAnswers(list_scores,pathtoClassifier,pathtoNerjar,query_dict):
                     #print "ner is of no use doing POS tagging to get noun phrase"
                     answer = word_tokenize(currpassage)
                     answers=nltk.pos_tag(answer)
-                    print answers
                     for i,pair in enumerate(answers):
                         if(pair[1]=="NNP"):
                             answersList.append(answer[i]) 
