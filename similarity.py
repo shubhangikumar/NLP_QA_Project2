@@ -249,6 +249,7 @@ def getAnswers(list_scores,pathtoClassifier,pathtoNerjar,query_dict):
         cnt=0
         # entity_labels doesn't yet have entries like What's    
         Query=query_dict[query]
+        print "Current Query"
         print Query
         testHowMany = re.compile("How many") 
         testHow=re.compile("How") 
@@ -271,13 +272,15 @@ def getAnswers(list_scores,pathtoClassifier,pathtoNerjar,query_dict):
             expectedEntity=entity_labels["What"]
         if testWhere.match(Query):
             expectedEntity=entity_labels["Where"]
+        print "expectedEntity"
         print expectedEntity
-        #print "New query "
         for currDict in list_scores: 
             if cnt>10:
                 break
             else:
                 currpassage=currDict['phrase']
+                print "current passage (ngram) "
+                print currpassage
                 answersList=[]
                 if expectedEntity!=[]:
                     answersList=queryForEntity(expectedEntity,currpassage,pathtoClassifier,pathtoNerjar)
