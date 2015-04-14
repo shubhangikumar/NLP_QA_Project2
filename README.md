@@ -2,5 +2,5 @@
 
 NER_PA2.py:
 
-Use queryForEntity2(expectedEntity,passage) to get answers for expected entities out of NER or POS(gives noun phrases as answer in this case)
+Use queryForEntity2(expectedEntity,passage) to get answers for expected entities out of NER or POS(gives noun phrases as answers in this case)
 
