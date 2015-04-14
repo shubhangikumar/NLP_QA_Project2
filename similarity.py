@@ -1,4 +1,5 @@
 import math
+import collections
 import re
 import os
 import datetime
@@ -159,29 +160,17 @@ def preprocessing(finalstr):
 
 def getngrams(ngramterms):
     ngram_list = []
-    for i in range(0, len(ngramterms) - 9):
-            if ngramterms[i] != "." and ngramterms[i+1] !="." and ngramterms[i+2] != "." and ngramterms[i+3] != "." and ngramterms[i+4] != "." and ngramterms[i+5] != "." and ngramterms[i+6] != "." and ngramterms[i+7] != "." and ngramterms[i+8] != ".":
-                ngram_list.append(ngramterms[i] + " " + ngramterms[i + 1] + " " + ngramterms[i + 2] + " " + ngramterms[i + 3] + " " + ngramterms[i + 4] + " " + ngramterms[i + 5] + " " + ngramterms[i + 6] + " " + ngramterms[i + 7] + " " + ngramterms[i + 8] + " " + ngramterms[i + 9])
-            '''
-            else :
-                if ngramterms[i] != "." :
-                    if ngramterms[i+1] == "." :
-                        ngram_list.append(ngramterms[i] + " " + ngramterms[i + 1])
-                    elif ngramterms[i+2] == "." :
-                        ngram_list.append(ngramterms[i] + " " + ngramterms[i + 1] + " " + ngramterms[i + 2])
-                    elif ngramterms[i+3] == "." :
-                        ngram_list.append(ngramterms[i] + " " + ngramterms[i + 1] + " " + ngramterms[i + 2] + " " + ngramterms[i + 3])
-                    elif ngramterms[i+4] == "." :
-                        ngram_list.append(ngramterms[i] + " " + ngramterms[i + 1] + " " + ngramterms[i + 2] + " " + ngramterms[i + 3] + " " + ngramterms[i + 4])
-                    elif ngramterms[i+5] == "." :
-                        ngram_list.append(ngramterms[i] + " " + ngramterms[i + 1] + " " + ngramterms[i + 2] + " " + ngramterms[i + 3] + " " + ngramterms[i + 4] + " " + ngramterms[i + 5])
-                    elif ngramterms[i+6] == "." :
-                        ngram_list.append(ngramterms[i] + " " + ngramterms[i + 1] + " " + ngramterms[i + 2] + " " + ngramterms[i + 3] + " " + ngramterms[i + 4] + " " + ngramterms[i + 5] + " " + ngramterms[i + 6])
-                    elif ngramterms[i+7] == "." :
-                        ngram_list.append(ngramterms[i] + " " + ngramterms[i + 1] + " " + ngramterms[i + 2] + " " + ngramterms[i + 3] + " " + ngramterms[i + 4] + " " + ngramterms[i + 5] + " " + ngramterms[i + 6] + " " + ngramterms[i + 7])
-                    elif ngramterms[i+8] == "." :
-                        ngram_list.append(ngramterms[i] + " " + ngramterms[i + 1] + " " + ngramterms[i + 2] + " " + ngramterms[i + 3] + " " + ngramterms[i + 4] + " " + ngramterms[i + 5] + " " + ngramterms[i + 6] + " " + ngramterms[i + 7] + " " + ngramterms[i + 8])
-            '''
+    for eachTerm in ngramterms :
+        tempTerm = eachTerm.split()
+        if len(tempTerm)> 9  :
+            for i in range(0, len(tempTerm) - 9) :
+                ngram_list.append(tempTerm[i] + " " + tempTerm[i + 1] + " " + tempTerm[i + 2] + " " + tempTerm[i + 3] + " " + tempTerm[i + 4] + " " + tempTerm[i + 5] + " " + tempTerm[i + 6] + " " + tempTerm[i + 7] + " " + tempTerm[i + 8] + " " + tempTerm[i + 9])
+        else :
+            if len(tempTerm) != 0 :
+                temp = tempTerm[0]
+                for i in range(1, len(tempTerm)) :
+                    temp += " " + tempTerm[i]
+                ngram_list.append(temp)
     return ngram_list
 
 def getTopDocsDict(pathTopDocs):
@@ -216,7 +205,7 @@ def getTopDocsDict(pathTopDocs):
             whitespace = re.compile(r'(\s)+', re.UNICODE)
             tempCompText = whitespace.sub(' ', tempCompText)
     
-            ngramterms = tempCompText.split()
+            ngramterms = tempCompText.split(".")
             ngram_list = getngrams(ngramterms)
     
             docs_dict.update({index:ngram_list})
