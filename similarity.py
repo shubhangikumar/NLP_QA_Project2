@@ -10,9 +10,10 @@ entity_labels = {"HOW": ["LOCATION","PERSON", "TIME", "DATE", "MONEY", "PERCENT"
 
 def similarity(query_dict,top_docs_dict):
     query_no = query_dict.keys()
+    dict_phrases = {}
     for i in range(len(query_no)):
         list_scores = []
-        dict_phrases = {}
+        
         query = query_no[i]
         doc_dict = top_docs_dict[query]
         query_text = query_dict[query]
