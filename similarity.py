@@ -270,6 +270,8 @@ def queryForEntity(expectedEntity,passage,pathtoClassifier,pathtoNerjar):
 
 
 def getAnswers(pathtoClassifier,pathtoNerjar,query_dict):
+    if os.path.exists(pathToAnswerFile):
+         f = file(pathToAnswerFile,"w")
     query_dict=collections.OrderedDict(sorted(query_dict.items()))
     for query in query_dict: # for every query
         cnt=0
@@ -280,7 +282,7 @@ def getAnswers(pathtoClassifier,pathtoNerjar,query_dict):
         print QueryNo
         print "Current Query"
         print Query
-     
+        f.write("qid"+" "+str(QueryNo)+"\n")
 
         testHowMany = re.compile("How many") 
         testHow=re.compile("How") 
@@ -335,12 +337,16 @@ def getAnswers(pathtoClassifier,pathtoNerjar,query_dict):
                             cnt=cnt+1
                             #print cnt
                     print "answer found from noun pharases"
-                    print answersList                    
+                    print answersList
+                    for answer in answersList:
+                        f.write(str(cnt)+" "+answer+"\n")
                 else:                     
                     cnt=cnt+1  
                     #print cnt
                     print "answer using nltk.tag.stanford NERTagger" 
                     print answersList
+                    for answer in answersList:
+                        f.write(str(cnt)+" "+answer+"\n")
                 #print finalanswer
 
         
@@ -360,9 +366,13 @@ def main():
     
     similarity(query_dict,top_docs_dict)
     print "Process completed", datetime.datetime.now().time()
+
+    pathToAnswerFile="/Users/srinisha/Downloads/pa2-release/answer.txt"
+
     
     pathtoClassifier='/Users/srinisha/Downloads/stanford-ner-2014-06-16/classifiers/english.all.3class.distsim.crf.ser.gz'
     pathtoNerjar='/Users/srinisha/Downloads/stanford-ner-2014-06-16/stanford-ner.jar'
+    
     getAnswers(pathtoClassifier,pathtoNerjar,query_dict)
     
 if __name__ == "__main__":

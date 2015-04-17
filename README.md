@@ -27,5 +27,12 @@ Give paths to the following:
    4. pathtoNerjar='
   
   Give path to stanford-ner.jar in stanford-ner-2014-06-16 folder.
+  
+  
+  EVALUATION:
+  
+  python evaluation.py PATH TO:answer_patterns.txt PATH TO:/pa2-release/answer.txt
+  
+  
 
 
