@@ -153,6 +153,7 @@ def getquerydict(questions_filename):
                 whitespace = re.compile(r'(\s)+', re.UNICODE)
                 line = whitespace.sub(' ', line)
                 line=" ".join([WL.lemmatize(i) for i in line.split()])
+                line = line.encode()
                 query_dict.update({qnum[1]:line})          
     return query_dict
 
