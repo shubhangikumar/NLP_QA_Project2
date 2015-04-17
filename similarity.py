@@ -4,6 +4,7 @@ import os
 import datetime
 from operator import itemgetter
 from nltk.corpus import stopwords
+import ner
 import nltk 
 import collections
 from nltk import word_tokenize
@@ -233,15 +234,28 @@ def getTopDocsDict(pathTopDocs):
 
 
 def queryForEntity(expectedEntity,passage,pathtoClassifier,pathtoNerjar):
-    st = NERTagger(pathtoClassifier,pathtoNerjar) 
-    answer=st.tag(passage.split()) 
+    tagger = ner.SocketNER(host='localhost', port=8081) # requires server to be started
+    answer=tagger.get_entities(passage)
+    #print answer
     answers=[]
     for j,currentExpectedEntity in enumerate(expectedEntity):
-        for i,pair in enumerate(answer):
-            if(pair[1]==currentExpectedEntity):
-                answerString=pair[0].encode()
-                answers.append(answerString)   
+        for key in answer:
+            #pair is not working properly for some entities like location
+            if(key==currentExpectedEntity):
+                for eachAnswer in answer[key]:
+                    answerString=eachAnswer.encode()
+                    answers.append(answerString) 
     return answers
+    
+#    st = NERTagger(pathtoClassifier,pathtoNerjar) 
+#    answer=st.tag(passage.split()) 
+#    answers=[]
+#    for j,currentExpectedEntity in enumerate(expectedEntity):
+#        for i,pair in enumerate(answer):
+#            if(pair[1]==currentExpectedEntity):
+#                answerString=pair[0].encode()
+#                answers.append(answerString)  
+#    return answers
 
 
 def getAnswers(pathtoClassifier,pathtoNerjar,query_dict):
@@ -255,7 +269,6 @@ def getAnswers(pathtoClassifier,pathtoNerjar,query_dict):
         print QueryNo
         print "Current Query"
         print Query
-        
      
 
         testHowMany = re.compile("How many") 
@@ -307,7 +320,7 @@ def getAnswers(pathtoClassifier,pathtoNerjar,query_dict):
                     answers=nltk.pos_tag(answer)
                     for i,pair in enumerate(answers):
                         if(pair[1]=="NNP"):
-                            answersList.append(answer[i]) 
+                            answersList.append(answer[i])
                             cnt=cnt+1
                             #print cnt
                     print "answer found from noun pharases"
@@ -317,6 +330,7 @@ def getAnswers(pathtoClassifier,pathtoNerjar,query_dict):
                     #print cnt
                     print "answer using nltk.tag.stanford NERTagger" 
                     print answersList
+                #print finalanswer
 
         
         
