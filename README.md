@@ -13,7 +13,12 @@ Give paths to the following:
    Should be in pa2-release/topdocs/dev/
   
   Install stanford NER     # (not the latest version unless u have java 1.8)
+  
+  install pyner https://github.com/dat/pyner
 
+ start server of inside stanford NER
+ 
+ java -mx1000m -cp stanford-ner.jar edu.stanford.nlp.ie.NERServer -loadClassifier classifiers/english.muc.7class.distsim.crf.ser.gz -port 8081 -outputFormat inlineXM
   
   3. pathtoClassifier=""
       
