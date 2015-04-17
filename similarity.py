@@ -11,7 +11,7 @@ from nltk import word_tokenize
 from nltk.tag.stanford import NERTagger
 from nltk.stem import WordNetLemmatizer
 
-entity_labels = {"How": ["LOCATION","PERSON", "TIME", "DATE", "MONEY", "PERCENT"], "What": ["LOCATION","PERSON", "TIME", "DATE", "MONEY", "PERCENT"],"WHERE": ["LOCATION"], "Who": ["PERSON", "ORGANIZATION"], "When": ["TIME", "DATE"], "How many": ["COUNT","MONEY","PERCENT"],"Which":["LOCATION","PERSON", "TIME", "DATE", "MONEY", "PERCENT"]}
+entity_labels = {"How": ["LOCATION","PERSON", "TIME", "DATE", "MONEY", "PERCENT"], "What": ["LOCATION","PERSON", "TIME", "DATE", "MONEY", "PERCENT"],"Where": ["LOCATION"], "Who": ["PERSON", "ORGANIZATION"], "When": ["TIME", "DATE"], "How many": ["COUNT","MONEY","PERCENT"],"Which":["LOCATION","PERSON", "TIME", "DATE", "MONEY", "PERCENT"]}
 dict_phrases = {}
 
 WL = WordNetLemmatizer()
@@ -181,8 +181,8 @@ def getngrams(ngramterms):
         tTerm = eachTerm.split()
         tempTerm = list()
         for eachTempTerm in tTerm :
-            eachTempTerm = WL.lemmatize(eachTempTerm)
-            eachTempTerm = eachTempTerm.encode()
+            #eachTempTerm = WL.lemmatize(eachTempTerm)
+            #eachTempTerm = eachTempTerm.encode()
             tempTerm.append(eachTempTerm)
         if len(tempTerm)> 9  :
              for i in range(0, len(tempTerm) - 9) :
@@ -244,7 +244,7 @@ def getTopDocsDict(pathTopDocs):
 # nltk stanford NER -http://stackoverflow.com/questions/18371092/stanford-named-entity-recognizer-ner-functionality-with-nltk
 
 
-def queryForEntity(expectedEntity,passage,pathToAnswerFile,pathtoClassifier,pathtoNerjar):
+def queryForEntity(expectedEntity,passage,pathtoClassifier,pathtoNerjar):
     tagger = ner.SocketNER(host='localhost', port=8081) # requires server to be started
     answer=tagger.get_entities(passage)
     #print answer
@@ -269,7 +269,7 @@ def queryForEntity(expectedEntity,passage,pathToAnswerFile,pathtoClassifier,path
 #    return answers
 
 
-def getAnswers(pathtoClassifier,pathtoNerjar,query_dict):
+def getAnswers(pathtoClassifier,pathtoNerjar,pathToAnswerFile,query_dict):
     if os.path.exists(pathToAnswerFile):
          f = file(pathToAnswerFile,"w")
     query_dict=collections.OrderedDict(sorted(query_dict.items()))
@@ -278,10 +278,10 @@ def getAnswers(pathtoClassifier,pathtoNerjar,query_dict):
         # entity_labels doesn't yet have entries like What's  
         Query=query_dict[query]
         QueryNo= query;
-        print "QueryNo"
-        print QueryNo
-        print "Current Query"
-        print Query
+        #print "QueryNo"
+        #print QueryNo
+        #print "Current Query"
+        #print Query
         f.write("qid"+" "+str(QueryNo)+"\n")
 
         testHowMany = re.compile("How many") 
@@ -305,8 +305,8 @@ def getAnswers(pathtoClassifier,pathtoNerjar,query_dict):
             expectedEntity=entity_labels["What"]
         if testWhere.match(Query):
             expectedEntity=entity_labels["Where"]
-        print "expectedEntity"
-        print expectedEntity
+        #print "expectedEntity"
+        #print expectedEntity
         #print "New query "
         list_scores=dict_phrases[QueryNo]
         
@@ -315,8 +315,8 @@ def getAnswers(pathtoClassifier,pathtoNerjar,query_dict):
                 break
             else:
                 currpassage=currDict['phrase']
-                print "current passage (ngram) "
-                print currpassage
+                #print "current passage (ngram) "
+                #print currpassage
                 answersList=[]
                 if expectedEntity!=[]:
                     answersList=queryForEntity(expectedEntity,currpassage,pathtoClassifier,pathtoNerjar)
@@ -336,15 +336,15 @@ def getAnswers(pathtoClassifier,pathtoNerjar,query_dict):
                             answersList.append(answer[i])
                             cnt=cnt+1
                             #print cnt
-                    print "answer found from noun pharases"
-                    print answersList
+                    #print "answer found from noun pharases"
+                    #print answersList
                     for answer in answersList:
                         f.write(str(cnt)+" "+answer+"\n")
                 else:                     
                     cnt=cnt+1  
                     #print cnt
-                    print "answer using nltk.tag.stanford NERTagger" 
-                    print answersList
+                    #print "answer using nltk.tag.stanford NERTagger" 
+                    #print answersList
                     for answer in answersList:
                         f.write(str(cnt)+" "+answer+"\n")
                 #print finalanswer
