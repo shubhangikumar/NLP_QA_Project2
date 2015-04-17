@@ -9,10 +9,12 @@ import nltk
 import collections
 from nltk import word_tokenize
 from nltk.tag.stanford import NERTagger
+from nltk.stem import WordNetLemmatizer
 
 entity_labels = {"How": ["LOCATION","PERSON", "TIME", "DATE", "MONEY", "PERCENT"], "What": ["LOCATION","PERSON", "TIME", "DATE", "MONEY", "PERCENT"],"WHERE": ["LOCATION"], "Who": ["PERSON", "ORGANIZATION"], "When": ["TIME", "DATE"], "How many": ["COUNT","MONEY","PERCENT"],"Which":["LOCATION","PERSON", "TIME", "DATE", "MONEY", "PERCENT"]}
 dict_phrases = {}
 
+WL = WordNetLemmatizer()
 
 def similarity(query_dict,top_docs_dict):
     query_no = query_dict.keys()
@@ -148,6 +150,9 @@ def getquerydict(questions_filename):
                 line = newline.sub('',line)
                 punctuation = re.compile(r'[\?."\',\(\)&/:]+', re.UNICODE)                
                 line = punctuation.sub('',line)
+                whitespace = re.compile(r'(\s)+', re.UNICODE)
+                line = whitespace.sub(' ', line)
+                line=" ".join([WL.lemmatize(i) for i in line.split()])
                 query_dict.update({qnum[1]:line})          
     return query_dict
 
@@ -172,7 +177,12 @@ def preprocessing(finalstr):
 def getngrams(ngramterms):
     ngram_list = []
     for eachTerm in ngramterms :
-        tempTerm = eachTerm.split()
+        tTerm = eachTerm.split()
+        tempTerm = list()
+        for eachTempTerm in tTerm :
+            eachTempTerm = WL.lemmatize(eachTempTerm)
+            eachTempTerm = eachTempTerm.encode()
+            tempTerm.append(eachTempTerm)
         if len(tempTerm)> 9  :
              for i in range(0, len(tempTerm) - 9) :
                  ngram_list.append(tempTerm[i] + " " + tempTerm[i + 1] + " " + tempTerm[i + 2] + " " + tempTerm[i + 3] + " " + tempTerm[i + 4] + " " + tempTerm[i + 5] + " " + tempTerm[i + 6] + " " + tempTerm[i + 7] + " " + tempTerm[i + 8] + " " + tempTerm[i + 9])
