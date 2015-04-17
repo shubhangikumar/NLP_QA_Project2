@@ -239,7 +239,8 @@ def queryForEntity(expectedEntity,passage,pathtoClassifier,pathtoNerjar):
     for j,currentExpectedEntity in enumerate(expectedEntity):
         for i,pair in enumerate(answer):
             if(pair[1]==currentExpectedEntity):
-                answers.append(answer[i])   
+                answerString=pair[0].encode()
+                answers.append(answerString)   
     return answers
 
 
