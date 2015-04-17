@@ -244,7 +244,7 @@ def getTopDocsDict(pathTopDocs):
 # nltk stanford NER -http://stackoverflow.com/questions/18371092/stanford-named-entity-recognizer-ner-functionality-with-nltk
 
 
-def queryForEntity(expectedEntity,passage,pathtoClassifier,pathtoNerjar):
+def queryForEntity(expectedEntity,passage,pathToAnswerFile,pathtoClassifier,pathtoNerjar):
     tagger = ner.SocketNER(host='localhost', port=8081) # requires server to be started
     answer=tagger.get_entities(passage)
     #print answer
@@ -373,7 +373,7 @@ def main():
     pathtoClassifier='/Users/srinisha/Downloads/stanford-ner-2014-06-16/classifiers/english.all.3class.distsim.crf.ser.gz'
     pathtoNerjar='/Users/srinisha/Downloads/stanford-ner-2014-06-16/stanford-ner.jar'
     
-    getAnswers(pathtoClassifier,pathtoNerjar,query_dict)
+    getAnswers(pathtoClassifier,pathtoNerjar,pathToAnswerFile,query_dict)
     
 if __name__ == "__main__":
     main()   
