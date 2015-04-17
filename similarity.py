@@ -181,8 +181,8 @@ def getngrams(ngramterms):
         tTerm = eachTerm.split()
         tempTerm = list()
         for eachTempTerm in tTerm :
-            #eachTempTerm = WL.lemmatize(eachTempTerm)
-            #eachTempTerm = eachTempTerm.encode()
+            eachTempTerm = WL.lemmatize(eachTempTerm)
+            eachTempTerm = eachTempTerm.encode()
             tempTerm.append(eachTempTerm)
         if len(tempTerm)> 9  :
              for i in range(0, len(tempTerm) - 9) :
@@ -271,7 +271,9 @@ def queryForEntity(expectedEntity,passage,pathtoClassifier,pathtoNerjar):
 
 def getAnswers(pathtoClassifier,pathtoNerjar,pathToAnswerFile,query_dict):
     if os.path.exists(pathToAnswerFile):
-         f = file(pathToAnswerFile,"w")
+        f = file(pathToAnswerFile,"w")
+    else:
+        f = file(pathToAnswerFile,"a")
     query_dict=collections.OrderedDict(sorted(query_dict.items()))
     for query in query_dict: # for every query
         cnt=0
@@ -311,7 +313,7 @@ def getAnswers(pathtoClassifier,pathtoNerjar,pathToAnswerFile,query_dict):
         list_scores=dict_phrases[QueryNo]
         
         for currDict in list_scores: 
-            if cnt>10:
+            if cnt>=10:
                 break
             else:
                 currpassage=currDict['phrase']
@@ -334,19 +336,26 @@ def getAnswers(pathtoClassifier,pathtoNerjar,pathToAnswerFile,query_dict):
                     for i,pair in enumerate(answers):
                         if(pair[1]=="NNP"):
                             answersList.append(answer[i])
-                            cnt=cnt+1
-                            #print cnt
                     #print "answer found from noun pharases"
                     #print answersList
                     for answer in answersList:
-                        f.write(str(cnt)+" "+answer+"\n")
+                        if cnt<10:
+                            cnt=cnt+1
+                            #print cnt
+                            f.write(str(cnt)+" "+answer+"\n")
+                        else:
+                            break
                 else:                     
-                    cnt=cnt+1  
                     #print cnt
                     #print "answer using nltk.tag.stanford NERTagger" 
                     #print answersList
                     for answer in answersList:
-                        f.write(str(cnt)+" "+answer+"\n")
+                        if cnt<10:
+                            cnt=cnt+1
+                            #print cnt
+                            f.write(str(cnt)+" "+answer+"\n")
+                        else:
+                            break
                 #print finalanswer
 
         
