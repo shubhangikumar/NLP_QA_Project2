@@ -181,8 +181,8 @@ def getngrams(ngramterms):
         tTerm = eachTerm.split()
         tempTerm = list()
         for eachTempTerm in tTerm :
-            eachTempTerm = WL.lemmatize(eachTempTerm)
-            eachTempTerm = eachTempTerm.encode()
+#            eachTempTerm = WL.lemmatize(eachTempTerm)
+#            eachTempTerm = eachTempTerm.encode()
             tempTerm.append(eachTempTerm)
         if len(tempTerm)> 9  :
              for i in range(0, len(tempTerm) - 9) :
@@ -324,28 +324,8 @@ def getAnswers(pathtoClassifier,pathtoNerjar,pathToAnswerFile,query_dict):
                     answersList=queryForEntity(expectedEntity,currpassage,pathtoClassifier,pathtoNerjar)
                     #if len(answersList)!=0:
                         #print "answer found shouldn't go to POS"
-                #else:
-                    #print "Couldnt find any matching entries in entity_labels dictory so didnt go for queryForEntity function"           
-                if len(answersList)==0:
-                    # since no answer was found from any of the exoected entities noun phrase extraction was done
-                    # Using POS tagging to get noun phrase
-                    #print "when answer list should be empty to come here"
-                    #print "ner is of no use doing POS tagging to get noun phrase"
-                    answer = word_tokenize(currpassage)
-                    answers=nltk.pos_tag(answer)
-                    for i,pair in enumerate(answers):
-                        if(pair[1]=="NNP"):
-                            answersList.append(answer[i])
-                    #print "answer found from noun pharases"
-                    #print answersList
-                    for answer in answersList:
-                        if cnt<10:
-                            cnt=cnt+1
-                            #print cnt
-                            f.write(str(cnt)+" "+answer+"\n")
-                        else:
-                            break
-                else:                     
+                    #else:
+                        #print "Couldnt find any matching entries in entity_labels dictory so didnt go for queryForEntity function"
                     #print cnt
                     #print "answer using nltk.tag.stanford NERTagger" 
                     #print answersList
@@ -356,7 +336,34 @@ def getAnswers(pathtoClassifier,pathtoNerjar,pathToAnswerFile,query_dict):
                             f.write(str(cnt)+" "+answer+"\n")
                         else:
                             break
-                #print finalanswer
+        for currDict in list_scores: 
+            if cnt>=10:
+                break
+            else:
+                currpassage=currDict['phrase']
+                #print "current passage (ngram) "
+                #print currpassage
+                answersList=[]
+                # since no answer was found from any of the exoected entities noun phrase extraction was done
+                # Using POS tagging to get noun phrase
+                #print "when answer list should be empty to come here"
+                #print "ner is of no use doing POS tagging to get noun phrase"
+                answer = word_tokenize(currpassage)
+                answers=nltk.pos_tag(answer)
+                for i,pair in enumerate(answers):
+                    if(pair[1]=="NNP"):
+                        answersList.append(answer[i])
+                #print "answer found from noun pharases"
+                #print answersList
+                for answer in answersList:
+                    if cnt<10:
+                        cnt=cnt+1
+                        #print cnt
+                        f.write(str(cnt)+" "+answer+"\n")
+                    else:
+                        break
+                                    
+                    
 
         
         
