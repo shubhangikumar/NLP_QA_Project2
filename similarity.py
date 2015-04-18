@@ -186,14 +186,14 @@ def getngrams(ngramterms):
             eachTempTerm = eachTempTerm.encode()
             tempTerm.append(eachTempTerm)
         if len(tempTerm)> 9  :
-             for i in range(0, len(tempTerm) - 9) :
-                 ngram_list.append(tempTerm[i] + " " + tempTerm[i + 1] + " " + tempTerm[i + 2] + " " + tempTerm[i + 3] + " " + tempTerm[i + 4] + " " + tempTerm[i + 5] + " " + tempTerm[i + 6] + " " + tempTerm[i + 7] + " " + tempTerm[i + 8] + " " + tempTerm[i + 9])
+            for i in range(0, len(tempTerm) - 9) :
+                ngram_list.append(tempTerm[i] + " " + tempTerm[i + 1] + " " + tempTerm[i + 2] + " " + tempTerm[i + 3] + " " + tempTerm[i + 4] + " " + tempTerm[i + 5] + " " + tempTerm[i + 6] + " " + tempTerm[i + 7] + " " + tempTerm[i + 8] + " " + tempTerm[i + 9])
         else :
-             if len(tempTerm) != 0 :
-                 temp = tempTerm[0]
-                 for i in range(1, len(tempTerm)) :
-                     temp += " " + tempTerm[i]
-                 ngram_list.append(temp)
+            if len(tempTerm) != 0 :
+                temp = tempTerm[0]
+                for i in range(1, len(tempTerm)) :
+                    temp += " " + tempTerm[i]
+                ngram_list.append(temp)
     return ngram_list
 
 def getTopDocsDict(pathTopDocs):
