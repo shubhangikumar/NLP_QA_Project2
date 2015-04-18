@@ -5,6 +5,7 @@ import datetime
 from operator import itemgetter
 from nltk.corpus import stopwords
 
+
 entity_labels = {"HOW": ["LOCATION","PERSON", "TIME", "DATE", "MONEY", "PERCENT"], "WHAT": ["LOCATION","PERSON", "TIME", "DATE", "MONEY", "PERCENT"],"WHERE": ["LOCATION"], "WHO": ["PERSON", "ORGANIZATION"], "WHEN": ["TIME", "DATE"], "HOW MANY": ["COUNT","MONEY","PERCENT"],"WHICH":["LOCATION","PERSON", "TIME", "DATE", "MONEY", "PERCENT"]}
 
 
@@ -135,6 +136,8 @@ def getquerydict(questions_filename):
                 line=" ".join([w for w in line.split(" ") if not w in stop])
                 newline = re.compile(r'(\n)', re.UNICODE)
                 line = newline.sub('',line)
+                punctuation = re.compile(r'[\?."\',\(\)&/:]+', re.UNICODE)
+                line = punctuation.sub('',line)
                 query_dict.update({qnum[1]:line})
                 
     return query_dict
