@@ -93,11 +93,14 @@ def find_tf(text):
     words = text.split(" ")
     dict_terms = {}
     for j in range(len(words)):
-        if(dict_terms.has_key(words[j])):
-            count = dict_terms.get(words[j])
-            dict_terms[words[j]] = count+1
+        if(entity_labels.has_key(words[j])):
+            continue;
         else:
-            dict_terms[words[j]] = 1
+            if(dict_terms.has_key(words[j])):
+                count = dict_terms.get(words[j])
+                dict_terms[words[j]] = count+1
+            else:
+                dict_terms[words[j]] = 1
 
     keys = dict_terms.keys()
     for k in range(len(keys)):
