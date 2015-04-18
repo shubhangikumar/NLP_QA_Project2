@@ -181,8 +181,9 @@ def getngrams(ngramterms):
         tTerm = eachTerm.split()
         tempTerm = list()
         for eachTempTerm in tTerm :
-#            eachTempTerm = WL.lemmatize(eachTempTerm)
-#            eachTempTerm = eachTempTerm.encode()
+            eachTempTerm = eachTempTerm.decode('ascii',errors='ignore')
+            eachTempTerm = WL.lemmatize(eachTempTerm)
+            eachTempTerm = eachTempTerm.encode()
             tempTerm.append(eachTempTerm)
         if len(tempTerm)> 9  :
              for i in range(0, len(tempTerm) - 9) :
