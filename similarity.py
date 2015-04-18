@@ -228,7 +228,7 @@ def getTopDocsDict(pathTopDocs):
             whitespace = re.compile(r'(\s)+', re.UNICODE)
             tempCompText = whitespace.sub(' ', tempCompText)
     
-            ngramterms = tempCompText.split(".")
+            ngramterms = tempCompText.split(". ")
             ngram_list = getngrams(ngramterms)
     
             docs_dict.update({index:ngram_list})
@@ -372,8 +372,8 @@ def getAnswers(pathtoClassifier,pathtoNerjar,pathToAnswerFile,query_dict):
 
 def main():
     print "Process started", datetime.datetime.now().time()
-    questions_filename = "/Users/srinisha/Downloads/pa2-release/qadata/dev/questions.txt"
-    pathTopDocs = "/Users/srinisha/Downloads/pa2-release/topdocs/dev/"  
+    questions_filename = "questions.txt"
+    pathTopDocs = "dev1/"  
     
     query_dict = getquerydict(questions_filename)
     print "Query Dictionary Generated", datetime.datetime.now().time()
@@ -383,7 +383,7 @@ def main():
     
     similarity(query_dict,top_docs_dict)
     print "Process completed", datetime.datetime.now().time()
-
+    '''
     pathToAnswerFile="/Users/srinisha/Downloads/pa2-release/answer.txt"
 
     
@@ -391,6 +391,6 @@ def main():
     pathtoNerjar='/Users/srinisha/Downloads/stanford-ner-2014-06-16/stanford-ner.jar'
     
     getAnswers(pathtoClassifier,pathtoNerjar,pathToAnswerFile,query_dict)
-    
+    '''
 if __name__ == "__main__":
     main()   
