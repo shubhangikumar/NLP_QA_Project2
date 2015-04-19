@@ -11,7 +11,7 @@ from nltk import word_tokenize
 from nltk.tag.stanford import NERTagger
 from nltk.stem import WordNetLemmatizer
 
-entity_labels = {"How": ["LOCATION","PERSON", "TIME", "DATE", "MONEY", "PERCENT"], "What": ["LOCATION","PERSON", "TIME", "DATE", "MONEY", "PERCENT"],"Where": ["LOCATION"], "Who": ["PERSON", "ORGANIZATION"], "When": ["TIME", "DATE"], "How many": ["COUNT","MONEY","PERCENT"],"Which":["LOCATION","PERSON", "TIME", "DATE", "MONEY", "PERCENT"]}
+entity_labels = {"How": ["LOCATION","PERSON", "TIME", "DATE", "MONEY", "PERCENT"], "What": ["LOCATION","PERSON", "TIME", "DATE", "MONEY", "PERCENT","ORGANIZATION"],"NAME":["LOCATION","PERSON", "TIME", "DATE", "MONEY", "PERCENT","ORGANIZATION"],"Where": ["LOCATION"], "Who": ["PERSON", "ORGANIZATION"], "When": ["TIME", "DATE"], "How many": ["COUNT","MONEY","PERCENT"],"Which":["LOCATION","PERSON", "TIME", "DATE", "MONEY", "PERCENT"]}
 dict_phrases = {}
 
 WL = WordNetLemmatizer()
@@ -41,9 +41,10 @@ def similarity(query_dict,top_docs_dict):
                 doc_normalized = cosine_normalize(doc_tf_dict)
                 score = calculate_dot_product(query_normalized,doc_normalized)
                 #print n_grams[n],score 
-                dict_scores['phrase'] = n_grams[n]
-                dict_scores['score'] = score
-                list_scores.append(dict_scores)
+                if score!=0:
+                    dict_scores['phrase'] = n_grams[n]
+                    dict_scores['score'] = score
+                    list_scores.append(dict_scores)
         newlist = sorted(list_scores, key=itemgetter('score'), reverse=True) 
         dict_phrases[query] = newlist
         for item in newlist:
@@ -74,7 +75,8 @@ def find_idf(query,doc_dict):
             list_ngrams = doc_dict[keys[i]]
             for j in range(len(list_ngrams)):
                 n_gram = list_ngrams[j]
-                if word in n_gram:
+                n_gram_lower=n_gram.lower()
+                if word in n_gram or word in n_gram_lower:
                     count = count+1
                     break;
         idf_map[word] = count
@@ -284,12 +286,8 @@ def getAnswers(pathtoClassifier,pathtoNerjar,pathToAnswerFile,query_dict):
         # entity_labels doesn't yet have entries like What's  
         Query=query_dict[query]
         QueryNo= query;
-        #print "QueryNo"
-        #print QueryNo
-        #print "Current Query"
-        #print Query
         f.write("qid"+" "+str(QueryNo)+"\n")
-
+        expectedEntity=[]
         testHowMany = re.compile("How many") 
         testHow=re.compile("How") 
         testWhen=re.compile("When")
@@ -297,6 +295,7 @@ def getAnswers(pathtoClassifier,pathtoNerjar,pathToAnswerFile,query_dict):
         testWho=re.compile("Who")
         testWhat=re.compile("What")
         testWhere=re.compile("Where")
+        testName=re.compile("Name")
         if testHow.match(Query):
             expectedEntity=entity_labels["How"]
         if testHowMany.match(Query):
@@ -307,13 +306,12 @@ def getAnswers(pathtoClassifier,pathtoNerjar,pathToAnswerFile,query_dict):
             expectedEntity=entity_labels["Which"]
         if testWho.match(Query):
             expectedEntity=entity_labels["Who"]
-        if testWhat.match(Query):
-            expectedEntity=entity_labels["What"]
+#        if testWhat.match(Query):
+#            expectedEntity=entity_labels["What"]
+#        if testName.match(Query):
+#            expectedEntity=entity_labels["Name"]
         if testWhere.match(Query):
             expectedEntity=entity_labels["Where"]
-        #print "expectedEntity"
-        #print expectedEntity
-        #print "New query "
         list_scores=dict_phrases[QueryNo]
         
         for currDict in list_scores: 
@@ -321,18 +319,9 @@ def getAnswers(pathtoClassifier,pathtoNerjar,pathToAnswerFile,query_dict):
                 break
             else:
                 currpassage=currDict['phrase']
-                #print "current passage (ngram) "
-                #print currpassage
                 answersList=[]
                 if expectedEntity!=[]:
                     answersList=queryForEntity(expectedEntity,currpassage,pathtoClassifier,pathtoNerjar)
-                    #if len(answersList)!=0:
-                        #print "answer found shouldn't go to POS"
-                    #else:
-                        #print "Couldnt find any matching entries in entity_labels dictory so didnt go for queryForEntity function"
-                    #print cnt
-                    #print "answer using nltk.tag.stanford NERTagger" 
-                    #print answersList
                     for answer in answersList:
                         if cnt<10:
                             cnt=cnt+1
@@ -340,25 +329,33 @@ def getAnswers(pathtoClassifier,pathtoNerjar,pathToAnswerFile,query_dict):
                             f.write(str(cnt)+" "+answer+"\n")
                         else:
                             break
+                else:
+                    currpassage=currDict['phrase']
+                    answersList=[]
+                    answer = word_tokenize(currpassage)
+                    answers=nltk.pos_tag(answer)
+                    for i,pair in enumerate(answers):
+                        if(pair[1]=="NNP"):
+                          answersList.append(answer[i])
+                    for answer in answersList:
+                        if cnt<10:
+                            cnt=cnt+1
+                            #print cnt
+                            f.write(str(cnt)+" "+answer+"\n")
+                        else:
+                            break
+
         for currDict in list_scores: 
             if cnt>=10:
                 break
             else:
                 currpassage=currDict['phrase']
-                #print "current passage (ngram) "
-                #print currpassage
                 answersList=[]
-                # since no answer was found from any of the exoected entities noun phrase extraction was done
-                # Using POS tagging to get noun phrase
-                #print "when answer list should be empty to come here"
-                #print "ner is of no use doing POS tagging to get noun phrase"
                 answer = word_tokenize(currpassage)
                 answers=nltk.pos_tag(answer)
                 for i,pair in enumerate(answers):
                     if(pair[1]=="NNP"):
                         answersList.append(answer[i])
-                #print "answer found from noun pharases"
-                #print answersList
                 for answer in answersList:
                     if cnt<10:
                         cnt=cnt+1
@@ -367,9 +364,6 @@ def getAnswers(pathtoClassifier,pathtoNerjar,pathToAnswerFile,query_dict):
                     else:
                         break
                                     
-                    
-
-        
         
     
 
@@ -385,7 +379,6 @@ def main():
     print "Top Docs Dictionary Generated", datetime.datetime.now().time()
     
     similarity(query_dict,top_docs_dict)
-    print "Process completed", datetime.datetime.now().time()
 
     pathToAnswerFile="/Users/srinisha/Downloads/pa2-release/answer.txt"
 
@@ -394,6 +387,8 @@ def main():
     pathtoNerjar='/Users/srinisha/Downloads/stanford-ner-2014-06-16/stanford-ner.jar'
     
     getAnswers(pathtoClassifier,pathtoNerjar,pathToAnswerFile,query_dict)
+    print "Process completed", datetime.datetime.now().time()
+
     
 if __name__ == "__main__":
     main()   
