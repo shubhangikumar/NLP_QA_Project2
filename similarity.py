@@ -8,13 +8,13 @@ import ner
 import nltk 
 import collections
 from nltk import word_tokenize
-from nltk.tag.stanford import NERTagger
 from nltk.stem import WordNetLemmatizer
 
 entity_labels = {"How": ["LOCATION","PERSON", "TIME", "DATE", "MONEY", "PERCENT"], "What": ["LOCATION","PERSON", "TIME", "DATE", "MONEY", "PERCENT","ORGANIZATION"],"NAME":["LOCATION","PERSON", "TIME", "DATE", "MONEY", "PERCENT","ORGANIZATION"],"Where": ["LOCATION"], "Who": ["PERSON", "ORGANIZATION"], "When": ["TIME", "DATE"], "How many": ["COUNT","MONEY","PERCENT"],"Which":["LOCATION","PERSON", "TIME", "DATE", "MONEY", "PERCENT"]}
 dict_phrases = {}
-
+ques_words = ["Who","Where","When","What","Why","How","Which","Whom"] 
 WL = WordNetLemmatizer()
+finalAnswers=[]
 
 def similarity(query_dict,top_docs_dict):
     query_no = query_dict.keys()
@@ -125,7 +125,14 @@ def cosine_normalize(dict_tf):
 #        print keys[k]
 #        print value
 #        print denominator
-        dict_tf[keys[k]] = value/denominator
+        try:
+            dict_tf[keys[k]] = value/denominator
+        except:
+            print keys[k]
+            print value
+            print denominator
+            print dict_tf
+            
         
     return dict_tf
         
@@ -263,16 +270,6 @@ def queryForEntity(expectedEntity,passage,pathtoClassifier,pathtoNerjar):
                     answerString=eachAnswer.encode()
                     answers.append(answerString) 
     return answers
-    
-#    st = NERTagger(pathtoClassifier,pathtoNerjar) 
-#    answer=st.tag(passage.split()) 
-#    answers=[]
-#    for j,currentExpectedEntity in enumerate(expectedEntity):
-#        for i,pair in enumerate(answer):
-#            if(pair[1]==currentExpectedEntity):
-#                answerString=pair[0].encode()
-#                answers.append(answerString)  
-#    return answers
 
 
 def getAnswers(pathtoClassifier,pathtoNerjar,pathToAnswerFile,query_dict):
@@ -282,8 +279,10 @@ def getAnswers(pathtoClassifier,pathtoNerjar,pathToAnswerFile,query_dict):
         f = file(pathToAnswerFile,"a")
     for query in query_dict: # for every query
         cnt=0
-        # entity_labels doesn't yet have entries like What's  
+        # What, Name uses POS tagging to extract NNP, we are not using POS tagging for these questions
         Query=query_dict[query]
+        print Query 
+        print query
         QueryNo= query;
         f.write("qid"+" "+str(QueryNo)+"\n")
         expectedEntity=[]
@@ -311,7 +310,7 @@ def getAnswers(pathtoClassifier,pathtoNerjar,pathToAnswerFile,query_dict):
 #            expectedEntity=entity_labels["Name"]
         if testWhere.match(Query):
             expectedEntity=entity_labels["Where"]
-        list_scores=dict_phrases[QueryNo]
+        list_scores=dict_phrases[QueryNo]       
         
         for currDict in list_scores: 
             if cnt>=10:
@@ -322,12 +321,40 @@ def getAnswers(pathtoClassifier,pathtoNerjar,pathToAnswerFile,query_dict):
                 if expectedEntity!=[]:
                     answersList=queryForEntity(expectedEntity,currpassage,pathtoClassifier,pathtoNerjar)
                     for answer in answersList:
-                        if cnt<10:
-                            cnt=cnt+1
-                            #print cnt
-                            f.write(str(cnt)+" "+answer+"\n")
-                        else:
-                            break
+                        if answer not in finalAnswers:
+                            if cnt<10:
+                                cnt=cnt+1
+                                #print cnt
+                                f.write(str(cnt)+" "+answer+"\n")
+                                finalAnswers.append(answer)
+                                print answer
+                            else:
+                                break
+                else:
+                    currpassage=currDict['phrase']
+                    answersList=[]
+                    answer = word_tokenize(currpassage)
+                    answers=nltk.pos_tag(answer)
+                    #print answers
+                    for i,pair in enumerate(answers):
+                        if(pair[1]=="NNP"):
+                          answersList.append(answer[i])
+                    for answer in answersList:
+                        if answer not in finalAnswers:                    
+                            if cnt<10:
+                                cnt=cnt+1
+                                #print answer
+                                #print cnt
+                                f.write(str(cnt)+" "+answer+"\n")
+                                finalAnswers.append(answer)
+                                print answer
+                            else:
+                                break
+        if cnt<10:
+
+            for currDict in list_scores: 
+                if cnt>=10:
+                    break
                 else:
                     currpassage=currDict['phrase']
                     answersList=[]
@@ -335,33 +362,19 @@ def getAnswers(pathtoClassifier,pathtoNerjar,pathToAnswerFile,query_dict):
                     answers=nltk.pos_tag(answer)
                     for i,pair in enumerate(answers):
                         if(pair[1]=="NNP"):
-                          answersList.append(answer[i])
+                            answersList.append(answer[i])
                     for answer in answersList:
-                        if cnt<10:
-                            cnt=cnt+1
-                            #print cnt
-                            f.write(str(cnt)+" "+answer+"\n")
-                        else:
-                            break
+                        if answer not in finalAnswers:
+                            if cnt<10:
+                                cnt=cnt+1
+                                #print cnt
+                                f.write(str(cnt)+" "+answer+"\n")
+                                finalAnswers.append(answer)
+                                print answer
+                            else:
+                                break
+        del finalAnswers[:]
 
-        for currDict in list_scores: 
-            if cnt>=10:
-                break
-            else:
-                currpassage=currDict['phrase']
-                answersList=[]
-                answer = word_tokenize(currpassage)
-                answers=nltk.pos_tag(answer)
-                for i,pair in enumerate(answers):
-                    if(pair[1]=="NNP"):
-                        answersList.append(answer[i])
-                for answer in answersList:
-                    if cnt<10:
-                        cnt=cnt+1
-                        #print cnt
-                        f.write(str(cnt)+" "+answer+"\n")
-                    else:
-                        break
                                     
         
     
