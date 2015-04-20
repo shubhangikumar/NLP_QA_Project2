@@ -142,7 +142,7 @@ def getquerydict(questions_filename):
     
     stop = stopwords.words('english')
     
-    query_dict = dict()
+    query_dict = collections.OrderedDict()
     
     for line in questions_file:
         matchQueryNumber = re.match(r'Number: [0-9]+', line, re.M|re.I)
@@ -280,7 +280,6 @@ def getAnswers(pathtoClassifier,pathtoNerjar,pathToAnswerFile,query_dict):
         f = file(pathToAnswerFile,"w")
     else:
         f = file(pathToAnswerFile,"a")
-    query_dict=collections.OrderedDict(sorted(query_dict.items()))
     for query in query_dict: # for every query
         cnt=0
         # entity_labels doesn't yet have entries like What's  
