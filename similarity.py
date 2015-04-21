@@ -316,7 +316,7 @@ def getAnswers(pathtoClassifier,pathtoNerjar,pathToAnswerFile,query_dict):
             expectedEntity=entity_labels["Which"]
         if testWho.match(Query): 
             temp=["is", "are", "wa"]
-            if Qwords[1] in temp: # wont expect person or oragnization so we have to do POS
+            if Qwords[1] in temp: # Who is|was|are wont expect person or oragnization so we have to do POS
                 expectedEntity =[]
             else:
                 expectedEntity=entity_labels["Who"]
