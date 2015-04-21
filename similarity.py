@@ -10,7 +10,7 @@ import collections
 from nltk import word_tokenize
 from nltk.stem import WordNetLemmatizer
 
-entity_labels = {"How": ["LOCATION","PERSON", "TIME", "DATE", "MONEY", "PERCENT"], "What": ["LOCATION","PERSON", "TIME", "DATE", "MONEY", "PERCENT","ORGANIZATION"],"NAME":["LOCATION","PERSON", "TIME", "DATE", "MONEY", "PERCENT","ORGANIZATION"],"Where": ["LOCATION"], "Who": ["PERSON", "ORGANIZATION"], "When": ["TIME", "DATE"],"Which":["LOCATION","PERSON", "TIME", "DATE", "MONEY", "PERCENT"]}
+entity_labels = {"How": ["LOCATION","PERSON", "TIME", "DATE", "MONEY", "PERCENT"], "What": ["LOCATION","PERSON", "TIME", "DATE", "MONEY", "PERCENT","ORGANIZATION"],"Where": ["LOCATION"], "Who": ["PERSON", "ORGANIZATION"], "When": ["TIME", "DATE"],"Which":["LOCATION","PERSON", "TIME", "DATE", "MONEY", "PERCENT"]}
 dict_phrases = {}
 WL = WordNetLemmatizer()
 finalAnswers=[]
