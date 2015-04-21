@@ -10,7 +10,7 @@ import collections
 from nltk import word_tokenize
 from nltk.stem import WordNetLemmatizer
 
-entity_labels = {"How": ["LOCATION","PERSON", "TIME", "DATE", "MONEY", "PERCENT"], "What": ["LOCATION","PERSON", "TIME", "DATE", "MONEY", "PERCENT","ORGANIZATION"],"Where": ["LOCATION"], "Who": ["PERSON", "ORGANIZATION"], "When": ["TIME", "DATE"],"Which":["LOCATION","PERSON", "TIME", "DATE", "MONEY", "PERCENT"]}
+entity_labels = {"How": ["LOCATION","PERSON", "TIME", "DATE", "MONEY", "PERCENT"],"Where": ["LOCATION"], "Who": ["PERSON", "ORGANIZATION"], "When": ["TIME", "DATE"],"Which":["LOCATION","PERSON", "TIME", "DATE", "MONEY", "PERCENT"]}
 dict_phrases = {}
 WL = WordNetLemmatizer()
 finalAnswers=[]
@@ -274,9 +274,7 @@ def getAnswers(pathtoClassifier,pathtoNerjar,pathToAnswerFile,query_dict):
         testWhen=re.compile("When")
         testWhich=re.compile("Which")
         testWho=re.compile("Who")
-        testWhat=re.compile("What")
         testWhere=re.compile("Where")
-        testName=re.compile("Name")
         Qwords=Query.split(" ")
         if testHow.match(Query):
             temp=["many","long","much"] # "How many? How much? How long?
