@@ -126,12 +126,7 @@ def cosine_normalize(dict_tf):
         try:
             dict_tf[keys[k]] = value/denominator
         except:
-            print keys[k]
-            print value
-            print denominator
-            print dict_tf
-            
-        
+            print "No matching query and doc word"
     return dict_tf
         
 def calculate_dot_product(query,document):
@@ -251,7 +246,7 @@ def getTopDocsDict(pathTopDocs):
 # nltk stanford NER
 
 # nltk stanford NER -http://stackoverflow.com/questions/18371092/stanford-named-entity-recognizer-ner-functionality-with-nltk
-
+# pyner wrapper for NER - https://github.com/dat/pyner
 
 def queryForEntity(expectedEntity,passage,pathtoClassifier,pathtoNerjar):
     tagger = ner.SocketNER(host='localhost', port=8081) # requires server to be started
