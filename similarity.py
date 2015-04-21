@@ -275,6 +275,8 @@ def getAnswers(pathtoClassifier,pathtoNerjar,pathToAnswerFile,query_dict):
         testWhich=re.compile("Which")
         testWho=re.compile("Who")
         testWhere=re.compile("Where")
+        testWhat=re.compile("What")
+        testName=re.compile("Name")
         Qwords=Query.split(" ")
         if testHow.match(Query):
             temp=["many","long","much"] # "How many? How much? How long?
