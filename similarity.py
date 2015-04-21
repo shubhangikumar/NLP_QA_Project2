@@ -3,17 +3,16 @@ import re
 import os
 import datetime
 from operator import itemgetter
-from nltk.corpus import stopwords
 import ner
 import nltk 
 import collections
 from nltk import word_tokenize
 from nltk.stem import WordNetLemmatizer
 
-entity_labels = {"How": ["LOCATION","PERSON", "TIME", "DATE", "MONEY", "PERCENT"],"Where": ["LOCATION"], "Who": ["PERSON", "ORGANIZATION"], "When": ["TIME", "DATE"],"Which":["LOCATION","PERSON", "TIME", "DATE", "MONEY", "PERCENT"]}
+entity_labels = {"How": ["LOCATION","PERSON", "TIME", "DATE", "MONEY", "PERCENT"],"Where": ["LOCATION"], "Who": ["PERSON", "ORGANIZATION"], "When": ["TIME", "DATE"],"Which":["LOCATION","PERSON", "TIME", "DATE", "MONEY", "PERCENT"],"What": ["LOCATION","PERSON", "TIME", "DATE", "MONEY", "PERCENT","ORGANIZATION"],"NAME":["LOCATION","PERSON", "TIME", "DATE", "MONEY", "PERCENT","ORGANIZATION"]}
 dict_phrases = {}
 WL = WordNetLemmatizer()
-finalAnswers=[]
+uniqueAnswers=[]
 
 def similarity(query_dict,top_docs_dict):
     query_no = query_dict.keys()
@@ -123,7 +122,9 @@ def cosine_normalize(dict_tf):
         try:
             dict_tf[keys[k]] = value/denominator
         except:
-            print "No matching query and doc word"
+            print "no words matching"
+            
+        
     return dict_tf
         
 def calculate_dot_product(query,document):
@@ -240,9 +241,11 @@ def getTopDocsDict(pathTopDocs):
     return top_docs_dict
 
 
+# nltk stanford NER
 
-# stanford NER -http://stackoverflow.com/questions/18371092/stanford-named-entity-recognizer-ner-functionality-with-nltk
-# pyner wrapper for NER - https://github.com/dat/pyner
+# nltk stanford NER -http://stackoverflow.com/questions/18371092/stanford-named-entity-recognizer-ner-functionality-with-nltk
+# pyner https://github.com/dat/pyner
+
 
 def queryForEntity(expectedEntity,passage):
     tagger = ner.SocketNER(host='localhost', port=8081) # requires server to be started
@@ -274,8 +277,8 @@ def getAnswers(pathToAnswerFile,query_dict):
         testWhen=re.compile("When")
         testWhich=re.compile("Which")
         testWho=re.compile("Who")
-        testWhere=re.compile("Where")
         testWhat=re.compile("What")
+        testWhere=re.compile("Where")
         testName=re.compile("Name")
         Qwords=Query.split(" ")
         if testHow.match(Query):
@@ -291,12 +294,11 @@ def getAnswers(pathToAnswerFile,query_dict):
                         answersList=getNumber.findall(currpassage)
                         if answersList!=[]:
                             for answer in answersList:
-                                if answer[0] not in finalAnswers:
+                                if answer[0] not in uniqueAnswers:
                                     if cnt<10:
                                         cnt=cnt+1
                                         f.write(str(cnt)+" "+answer[0]+"\n")
-                                        finalAnswers.append(answer[0])
-                                        print answer[0]
+                                        uniqueAnswers.append(answer[0])
                                     else:
                                         break             
             else:
@@ -327,12 +329,11 @@ def getAnswers(pathToAnswerFile,query_dict):
                 if expectedEntity!=[]:
                     answersList=queryForEntity(expectedEntity,currpassage)
                     for answer in answersList:
-                        if answer not in finalAnswers:
+                        if answer not in uniqueAnswers:
                             if cnt<10:
                                 cnt=cnt+1
                                 f.write(str(cnt)+" "+answer+"\n")
-                                finalAnswers.append(answer)
-                                print answer
+                                uniqueAnswers.append(answer)
                             else:
                                 break
                 else:
@@ -340,19 +341,15 @@ def getAnswers(pathToAnswerFile,query_dict):
                     answersList=[]
                     answer = word_tokenize(currpassage)
                     answers=nltk.pos_tag(answer)
-                    #print answers
                     for i,pair in enumerate(answers):
                         if(pair[1]=="NNP"):
                           answersList.append(answer[i])
                     for answer in answersList:
-                        if answer not in finalAnswers:                    
+                        if answer not in uniqueAnswers:                    
                             if cnt<10:
                                 cnt=cnt+1
-                                #print answer
-                                #print cnt
                                 f.write(str(cnt)+" "+answer+"\n")
-                                finalAnswers.append(answer)
-                                print answer
+                                uniqueAnswers.append(answer)
                             else:
                                 break
         if cnt<10:
@@ -369,16 +366,14 @@ def getAnswers(pathToAnswerFile,query_dict):
                         if(pair[1]=="NNP"):
                             answersList.append(answer[i])
                     for answer in answersList:
-                        if answer not in finalAnswers:
+                        if answer not in uniqueAnswers:
                             if cnt<10:
                                 cnt=cnt+1
-                                #print cnt
                                 f.write(str(cnt)+" "+answer+"\n")
-                                finalAnswers.append(answer)
-                                print answer
+                                uniqueAnswers.append(answer)
                             else:
                                 break
-        del finalAnswers[:]
+        del uniqueAnswers[:]
 
                                     
         
@@ -398,7 +393,7 @@ def main():
     similarity(query_dict,top_docs_dict)
 
     pathToAnswerFile="/Users/srinisha/Dropbox/cornell/hw/nlp/PA2/pa2/pa2-release/answer.txt"
-    
+
     getAnswers(pathToAnswerFile,query_dict)
     print "Process completed", datetime.datetime.now().time()
 
