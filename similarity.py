@@ -10,9 +10,8 @@ import collections
 from nltk import word_tokenize
 from nltk.stem import WordNetLemmatizer
 
-entity_labels = {"How": ["LOCATION","PERSON", "TIME", "DATE", "MONEY", "PERCENT"], "What": ["LOCATION","PERSON", "TIME", "DATE", "MONEY", "PERCENT","ORGANIZATION"],"NAME":["LOCATION","PERSON", "TIME", "DATE", "MONEY", "PERCENT","ORGANIZATION"],"Where": ["LOCATION"], "Who": ["PERSON", "ORGANIZATION"], "When": ["TIME", "DATE"], "How many": ["COUNT","MONEY","PERCENT"],"Which":["LOCATION","PERSON", "TIME", "DATE", "MONEY", "PERCENT"]}
+entity_labels = {"How": ["LOCATION","PERSON", "TIME", "DATE", "MONEY", "PERCENT"], "What": ["LOCATION","PERSON", "TIME", "DATE", "MONEY", "PERCENT","ORGANIZATION"],"NAME":["LOCATION","PERSON", "TIME", "DATE", "MONEY", "PERCENT","ORGANIZATION"],"Where": ["LOCATION"], "Who": ["PERSON", "ORGANIZATION"], "When": ["TIME", "DATE"],"Which":["LOCATION","PERSON", "TIME", "DATE", "MONEY", "PERCENT"]}
 dict_phrases = {}
-ques_words = ["Who","Where","When","What","Why","How","Which","Whom"] 
 WL = WordNetLemmatizer()
 finalAnswers=[]
 
@@ -40,7 +39,6 @@ def similarity(query_dict,top_docs_dict):
                 doc_tf_dict = find_tf(n_grams[n])
                 doc_normalized = cosine_normalize(doc_tf_dict)
                 score = calculate_dot_product(query_normalized,doc_normalized)
-                #print n_grams[n],score 
                 if score!=0:
                     dict_scores['phrase'] = n_grams[n]
                     dict_scores['score'] = score
@@ -147,7 +145,6 @@ def calculate_dot_product(query,document):
 def getquerydict(questions_filename):
     questions_file = open(questions_filename, "r")
     
-    stop = stopwords.words('english')
     
     query_dict = collections.OrderedDict()
     
@@ -157,7 +154,7 @@ def getquerydict(questions_filename):
             qnum = matchQueryNumber.group(0).split()
         else:
             if line!="\n":
-                line=" ".join([w for w in line.split(" ") if not w in stop])
+                line=" ".join([w for w in line.split(" ")])
                 newline = re.compile(r'(\n)', re.UNICODE)
                 line = newline.sub('',line)
                 punctuation = re.compile(r'[\?."\',\(\)&/:]+', re.UNICODE)                
@@ -252,7 +249,6 @@ def getTopDocsDict(pathTopDocs):
 
 
 # nltk stanford NER
-# Use this for now -- take a few seconds (a little slow)
 
 # nltk stanford NER -http://stackoverflow.com/questions/18371092/stanford-named-entity-recognizer-ner-functionality-with-nltk
 
@@ -260,11 +256,9 @@ def getTopDocsDict(pathTopDocs):
 def queryForEntity(expectedEntity,passage,pathtoClassifier,pathtoNerjar):
     tagger = ner.SocketNER(host='localhost', port=8081) # requires server to be started
     answer=tagger.get_entities(passage)
-    #print answer
     answers=[]
     for j,currentExpectedEntity in enumerate(expectedEntity):
         for key in answer:
-            #pair is not working properly for some entities like location
             if(key==currentExpectedEntity):
                 for eachAnswer in answer[key]:
                     answerString=eachAnswer.encode()
@@ -281,12 +275,10 @@ def getAnswers(pathtoClassifier,pathtoNerjar,pathToAnswerFile,query_dict):
         cnt=0
         # What, Name uses POS tagging to extract NNP, we are not using POS tagging for these questions
         Query=query_dict[query]
-        print Query 
-        print query
         QueryNo= query;
+        list_scores=dict_phrases[QueryNo]       
         f.write("qid"+" "+str(QueryNo)+"\n")
         expectedEntity=[]
-        testHowMany = re.compile("How many") 
         testHow=re.compile("How") 
         testWhen=re.compile("When")
         testWhich=re.compile("Which")
@@ -294,24 +286,47 @@ def getAnswers(pathtoClassifier,pathtoNerjar,pathToAnswerFile,query_dict):
         testWhat=re.compile("What")
         testWhere=re.compile("Where")
         testName=re.compile("Name")
+        Qwords=Query.split(" ")
         if testHow.match(Query):
-            expectedEntity=entity_labels["How"]
-        if testHowMany.match(Query):
-            expectedEntity=entity_labels["How many"]        
+            temp=["many","long","much"] # "How many? How much? How long?
+            if Qwords[1] in temp:
+                for currDict in list_scores: 
+                    if cnt>=10:
+                        break
+                    else:
+                        currpassage=currDict['phrase']
+                        answersList=[]
+                        getNumber=re.compile(r'(([0-9]+)|((one|twe|three|four|five|six|seven|eight|nine)+|(ten*|\shundred*|\sthousand*)))')
+                        answersList=getNumber.findall(currpassage)
+                        if answersList!=[]:
+                            for answer in answersList:
+                                if answer[0] not in finalAnswers:
+                                    if cnt<10:
+                                        cnt=cnt+1
+                                        f.write(str(cnt)+" "+answer[0]+"\n")
+                                        finalAnswers.append(answer[0])
+                                        print answer[0]
+                                    else:
+                                        break             
+            else:
+                expectedEntity=entity_labels["How"]     
         if testWhen.match(Query):
             expectedEntity=entity_labels["When"]
         if testWhich.match(Query):
             expectedEntity=entity_labels["Which"]
-        if testWho.match(Query):
-            expectedEntity=entity_labels["Who"]
-#        if testWhat.match(Query):
-#            expectedEntity=entity_labels["What"]
-#        if testName.match(Query):
-#            expectedEntity=entity_labels["Name"]
+        if testWho.match(Query): 
+            temp=["is", "are", "wa"]
+            if Qwords[1] in temp: # wont expect person or oragnization so we have to do POS
+                expectedEntity =[]
+            else:
+                expectedEntity=entity_labels["Who"]
+        if testWhat.match(Query): # POS
+            expectedEntity=[]
+        if testName.match(Query): # POS
+             expectedEntity=[]
         if testWhere.match(Query):
             expectedEntity=entity_labels["Where"]
-        list_scores=dict_phrases[QueryNo]       
-        
+            
         for currDict in list_scores: 
             if cnt>=10:
                 break
@@ -324,7 +339,6 @@ def getAnswers(pathtoClassifier,pathtoNerjar,pathToAnswerFile,query_dict):
                         if answer not in finalAnswers:
                             if cnt<10:
                                 cnt=cnt+1
-                                #print cnt
                                 f.write(str(cnt)+" "+answer+"\n")
                                 finalAnswers.append(answer)
                                 print answer
@@ -381,8 +395,8 @@ def getAnswers(pathtoClassifier,pathtoNerjar,pathToAnswerFile,query_dict):
 
 def main():
     print "Process started", datetime.datetime.now().time()
-    questions_filename = "/Users/srinisha/Downloads/pa2-release/qadata/dev/questions.txt"
-    pathTopDocs = "/Users/srinisha/Downloads/pa2-release/topdocs/dev/"  
+    questions_filename = "/Users/srinisha/Dropbox/cornell/hw/nlp/PA2/pa2/pa2-release/qadata/dev/questions.txt"
+    pathTopDocs = "/Users/srinisha/Dropbox/cornell/hw/nlp/PA2/pa2/pa2-release/topdocs/dev/"  
     
     query_dict = getquerydict(questions_filename)
     print "Query Dictionary Generated", datetime.datetime.now().time()
@@ -392,7 +406,7 @@ def main():
     
     similarity(query_dict,top_docs_dict)
 
-    pathToAnswerFile="/Users/srinisha/Downloads/pa2-release/answer.txt"
+    pathToAnswerFile="/Users/srinisha/Dropbox/cornell/hw/nlp/PA2/pa2/pa2-release/answer.txt"
 
     
     pathtoClassifier='/Users/srinisha/Downloads/stanford-ner-2014-06-16/classifiers/english.all.3class.distsim.crf.ser.gz'
