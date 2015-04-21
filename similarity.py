@@ -244,7 +244,7 @@ def getTopDocsDict(pathTopDocs):
 # stanford NER -http://stackoverflow.com/questions/18371092/stanford-named-entity-recognizer-ner-functionality-with-nltk
 # pyner wrapper for NER - https://github.com/dat/pyner
 
-def queryForEntity(expectedEntity,passage,pathtoClassifier,pathtoNerjar):
+def queryForEntity(expectedEntity,passage):
     tagger = ner.SocketNER(host='localhost', port=8081) # requires server to be started
     answer=tagger.get_entities(passage)
     answers=[]
@@ -257,7 +257,7 @@ def queryForEntity(expectedEntity,passage,pathtoClassifier,pathtoNerjar):
     return answers
 
 
-def getAnswers(pathtoClassifier,pathtoNerjar,pathToAnswerFile,query_dict):
+def getAnswers(pathToAnswerFile,query_dict):
     if os.path.exists(pathToAnswerFile):
         f = file(pathToAnswerFile,"w")
     else:
@@ -325,7 +325,7 @@ def getAnswers(pathtoClassifier,pathtoNerjar,pathToAnswerFile,query_dict):
                 currpassage=currDict['phrase']
                 answersList=[]
                 if expectedEntity!=[]:
-                    answersList=queryForEntity(expectedEntity,currpassage,pathtoClassifier,pathtoNerjar)
+                    answersList=queryForEntity(expectedEntity,currpassage)
                     for answer in answersList:
                         if answer not in finalAnswers:
                             if cnt<10:
@@ -398,12 +398,8 @@ def main():
     similarity(query_dict,top_docs_dict)
 
     pathToAnswerFile="/Users/srinisha/Dropbox/cornell/hw/nlp/PA2/pa2/pa2-release/answer.txt"
-
     
-    pathtoClassifier='/Users/srinisha/Downloads/stanford-ner-2014-06-16/classifiers/english.all.3class.distsim.crf.ser.gz'
-    pathtoNerjar='/Users/srinisha/Downloads/stanford-ner-2014-06-16/stanford-ner.jar'
-    
-    getAnswers(pathtoClassifier,pathtoNerjar,pathToAnswerFile,query_dict)
+    getAnswers(pathToAnswerFile,query_dict)
     print "Process completed", datetime.datetime.now().time()
 
     
