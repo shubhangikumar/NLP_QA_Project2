@@ -8,6 +8,9 @@ import nltk
 import collections
 from nltk import word_tokenize
 from nltk.stem import WordNetLemmatizer
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 entity_labels = {"How": ["LOCATION","PERSON", "TIME", "DATE", "MONEY", "PERCENT"],"Where": ["LOCATION"], "Who": ["PERSON", "ORGANIZATION"], "When": ["TIME", "DATE"],"Which":["LOCATION","PERSON", "TIME", "DATE", "MONEY", "PERCENT"],"What": ["LOCATION","PERSON", "TIME", "DATE", "MONEY", "PERCENT","ORGANIZATION"],"NAME":["LOCATION","PERSON", "TIME", "DATE", "MONEY", "PERCENT","ORGANIZATION"]}
 dict_phrases = {}
@@ -16,37 +19,41 @@ uniqueAnswers=[]
 
 def similarity(query_dict,top_docs_dict):
     query_no = query_dict.keys()
-
+    
     for i in range(len(query_no)):
         list_scores = []
         query = query_no[i]
         doc_dict = top_docs_dict[query]
-        query_text = query_dict[query]
-        idf_values = find_idf(query_text,doc_dict)
-        query_tf = find_tf(query_text)
-        query_tf_idf = get_tf_idf(query_tf,idf_values)
-        query_normalized = cosine_normalize(query_tf_idf)
-        #return list of ngrams here and iterate over each n-gram
+        query_text = query_dict[query]        
         keys_list_docs = doc_dict.keys()
-        fwrite = open("tempfile", "w+")
-            
-        
+        matr = {}
+        n_grams =[]
         for l in range(len(doc_dict)):
-            n_grams = doc_dict[keys_list_docs[l]]
-            for n in range(len(n_grams)):
-                dict_scores = {}
-                doc_tf_dict = find_tf(n_grams[n])
-                doc_normalized = cosine_normalize(doc_tf_dict)
-                score = calculate_dot_product(query_normalized,doc_normalized)
-                if score!=0:
-                    dict_scores['phrase'] = n_grams[n]
-                    dict_scores['score'] = score
-                    list_scores.append(dict_scores)
+            list_doc_dict = doc_dict[keys_list_docs[l]]
+            for j in range(len(list_doc_dict)):
+                n_grams.append(list_doc_dict[j])
+        dict_scores = {}
+        train_set = []
+        train_set.append(query_text)
+        for n in range(len(n_grams)):
+            train_set.append(n_grams[n])
+        tfidf_vectorizer = TfidfVectorizer()
+        tfidf_matrix_train = tfidf_vectorizer.fit_transform(train_set)  #finds the tfidf score with normalization
+        matr[int(query)] = cosine_similarity(tfidf_matrix_train[0:1], tfidf_matrix_train)
+        tup = matr[int(query)]
+        
+        for k in range(len(n_grams)):
+            dict_scores = {}
+            if k==0 :
+                continue
+            score = tup[0][k]
+            if(score != 0):
+                dict_scores['phrase'] = n_grams[k-1]
+                dict_scores['score'] = score
+                list_scores.append(dict_scores)
+                
         newlist = sorted(list_scores, key=itemgetter('score'), reverse=True) 
         dict_phrases[query] = newlist
-        for item in newlist:
-            fwrite.write("%s\n" % item)      
-        fwrite.close()
         
 def get_tf_idf(query_tf,idf_values):
     keys = query_tf.keys()
@@ -381,8 +388,8 @@ def getAnswers(pathToAnswerFile,query_dict):
 
 def main():
     print "Process started", datetime.datetime.now().time()
-    questions_filename = "/Users/srinisha/Dropbox/cornell/hw/nlp/PA2/pa2/pa2-release/qadata/dev/questions.txt"
-    pathTopDocs = "/Users/srinisha/Dropbox/cornell/hw/nlp/PA2/pa2/pa2-release/topdocs/dev/"  
+    questions_filename = "C:/Users/Shubhangi/Desktop/CORNELL COURSES/Spring 2015/NLP/Project2/pa2_data/pa2-release/qadata/dev/questions.txt"
+    pathTopDocs = "C:/Users/Shubhangi/Desktop/CORNELL COURSES/Spring 2015/NLP/Project2/pa2_data/pa2-release/topdocs/dev/"  
     
     query_dict = getquerydict(questions_filename)
     print "Query Dictionary Generated", datetime.datetime.now().time()
@@ -392,7 +399,7 @@ def main():
     
     similarity(query_dict,top_docs_dict)
 
-    pathToAnswerFile="/Users/srinisha/Dropbox/cornell/hw/nlp/PA2/pa2/pa2-release/answer.txt"
+    pathToAnswerFile="C:/Users/Shubhangi/Desktop/CORNELL COURSES/Spring 2015/NLP/Project2/pa2_data/pa2-release/answer.txt"
 
     getAnswers(pathToAnswerFile,query_dict)
     print "Process completed", datetime.datetime.now().time()
