@@ -120,9 +120,6 @@ def cosine_normalize(dict_tf):
     
     for k in range(len(keys)):
         value = dict_tf.get(keys[k])
-#        print keys[k]
-#        print value
-#        print denominator
         try:
             dict_tf[keys[k]] = value/denominator
         except:
@@ -243,9 +240,8 @@ def getTopDocsDict(pathTopDocs):
     return top_docs_dict
 
 
-# nltk stanford NER
 
-# nltk stanford NER -http://stackoverflow.com/questions/18371092/stanford-named-entity-recognizer-ner-functionality-with-nltk
+# stanford NER -http://stackoverflow.com/questions/18371092/stanford-named-entity-recognizer-ner-functionality-with-nltk
 # pyner wrapper for NER - https://github.com/dat/pyner
 
 def queryForEntity(expectedEntity,passage,pathtoClassifier,pathtoNerjar):
