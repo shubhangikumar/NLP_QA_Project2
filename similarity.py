@@ -8,7 +8,6 @@ import nltk
 import collections
 from nltk import word_tokenize
 from nltk.stem import WordNetLemmatizer
-from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.feature_extraction.text import TfidfVectorizer
 from nltk.corpus import stopwords
@@ -282,16 +281,15 @@ def getAnswers(pathToAnswerFile,query_dict):
         Query=query_dict[query]
         QueryNo= query;
         list_scores=dict_phrases[QueryNo]
-        #print list_scores       
         f.write("qid"+" "+str(QueryNo)+"\n")
         expectedEntity=[]
-        testHow=re.compile("How") 
-        testWhen=re.compile("When")
-        testWhich=re.compile("Which")
-        testWho=re.compile("Who")
-        testWhat=re.compile("What")
-        testWhere=re.compile("Where")
-        testName=re.compile("Name")
+        testHow=re.compile("How",re.I) 
+        testWhen=re.compile("When",re.I)
+        testWhich=re.compile("Which",re.I)
+        testWho=re.compile("Who",re.I)
+        testWhat=re.compile("What",re.I)
+        testWhere=re.compile("Where",re.I)
+        testName=re.compile("Name",re.I)
         Qwords=Query.split(" ")
         if testHow.match(Query):
             temp=["many","long","much"] # "How many? How much? How long?
@@ -325,10 +323,20 @@ def getAnswers(pathToAnswerFile,query_dict):
                 expectedEntity =[]
             else:
                 expectedEntity=entity_labels["Who"]
-        if testWhat.match(Query): # POS
-            expectedEntity=[]
-        if testName.match(Query): # POS
-             expectedEntity=[]
+        if testWhat.match(Query):
+            testtemp=re.compile(r'(state|country|place|city|continent|located)')
+            match=testtemp.findall(Query)
+            if match!=[]:
+                expectedEntity=["LOCATION"]
+            else:
+                expectedEntity=[] # POS
+        if testName.match(Query): 
+            testtemp=re.compile(r'(state|country|place|city|continent|located)')
+            match=testtemp.findall(Query)
+            if match!=[]:
+                expectedEntity=["LOCATION"]
+            else:
+                expectedEntity=[] # POS
         if testWhere.match(Query):
             expectedEntity=entity_labels["Where"]
             
@@ -393,11 +401,10 @@ def getAnswers(pathToAnswerFile,query_dict):
 
 def main():
     print "Process started", datetime.datetime.now().time()
-    questions_filename = "questions.txt"
-    pathTopDocs = "dev1/"  
+    questions_filename = "/Users/srinisha/Dropbox/cornell/hw/nlp/PA2/pa2/pa2-release/qadata/dev/questions.txt"
+    pathTopDocs = "/Users/srinisha/Dropbox/cornell/hw/nlp/PA2/pa2/pa2-release/topdocs/dev/"  
     
     query_dict = getquerydict(questions_filename)
-    
     print "Query Dictionary Generated", datetime.datetime.now().time()
     
     top_docs_dict = getTopDocsDict(pathTopDocs)
@@ -405,9 +412,7 @@ def main():
     
     similarity(query_dict,top_docs_dict)
 
-    pathToAnswerFile="answerss.txt"
-    pathtoClassifier='C:/Users/Nivedhitha/Downloads/stanford-ner-2014-06-16/stanford-ner-2014-06-16/classifiers/english.all.3class.distsim.crf.ser.gz'
-    pathtoNerjar='C:/Users/Nivedhitha/Downloads/stanford-ner-2014-06-16/stanford-ner-2014-06-16/stanford-ner.jar'
+    pathToAnswerFile="/Users/srinisha/Dropbox/cornell/hw/nlp/PA2/pa2/pa2-release/answer.txt"
 
     getAnswers(pathToAnswerFile,query_dict)
     print "Process completed", datetime.datetime.now().time()
