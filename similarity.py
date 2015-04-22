@@ -291,7 +291,7 @@ def getAnswers(pathToAnswerFile,query_dict):
         testWhere=re.compile(r'Where|where')
         testName=re.compile(r'Name|name')
         Qwords=Query.split(" ")
-        if testHow.match(Query):
+        if testHow.findall(Query):
             temp=["many","long","much"] # "How many? How much? How long?
             if Qwords[1] in temp:
                 for currDict in list_scores: 
@@ -313,34 +313,31 @@ def getAnswers(pathToAnswerFile,query_dict):
                                         break             
             else:
                 expectedEntity=entity_labels["How"]     
-        if testWhen.match(Query):
+        if testWhen.findall(Query):
             expectedEntity=entity_labels["When"]
-        if testWhich.match(Query):
+        if testWhich.findall(Query):
             expectedEntity=entity_labels["Which"]
-        if testWho.match(Query): 
+        if testWho.findall(Query): 
             temp=["is", "are", "wa"]
             if Qwords[1] in temp: # Who is|was|are wont expect person or oragnization so we have to do POS
                 expectedEntity =[]
             else:
                 expectedEntity=entity_labels["Who"]
-        if testWhat.match(Query):
-            print Query
-            testtemp=re.compile(r'(state|country|place|city|continent|located)')
-            match=testtemp.findall(Query)
-            if match!=[]:
-                print "hi"
-                expectedEntity=["LOCATION"]
-            else:
-                expectedEntity=[] # POS
-        if testName.match(Query): 
-            print Query
+        if testWhat.findall(Query):
             testtemp=re.compile(r'(state|country|place|city|continent|located)')
             match=testtemp.findall(Query)
             if match!=[]:
                 expectedEntity=["LOCATION"]
             else:
                 expectedEntity=[] # POS
-        if testWhere.match(Query):
+        if testName.findall(Query): 
+            testtemp=re.compile(r'(state|country|place|city|continent|located)')
+            match=testtemp.findall(Query)
+            if match!=[]:
+                expectedEntity=["LOCATION"]
+            else:
+                expectedEntity=[] # POS
+        if testWhere.findall(Query):
             expectedEntity=entity_labels["Where"]
             
         for currDict in list_scores: 
@@ -404,8 +401,8 @@ def getAnswers(pathToAnswerFile,query_dict):
 
 def main():
     print "Process started", datetime.datetime.now().time()
-    questions_filename = "/Users/srinisha/Dropbox/cornell/hw/nlp/PA2/pa2/pa2-release/qadata/dev/questions2.txt"
-    pathTopDocs = "/Users/srinisha/Dropbox/cornell/hw/nlp/PA2/pa2/pa2-release/topdocs/dev2/"  
+    questions_filename = "/Users/srinisha/Dropbox/cornell/hw/nlp/PA2/pa2/pa2-release/qadata/dev/questions.txt"
+    pathTopDocs = "/Users/srinisha/Dropbox/cornell/hw/nlp/PA2/pa2/pa2-release/topdocs/dev/"  
     
     query_dict = getquerydict(questions_filename)
     print "Query Dictionary Generated", datetime.datetime.now().time()
