@@ -11,11 +11,14 @@ from nltk.stem import WordNetLemmatizer
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.feature_extraction.text import TfidfVectorizer
+from nltk.corpus import stopwords
 
 entity_labels = {"How": ["LOCATION","PERSON", "TIME", "DATE", "MONEY", "PERCENT"],"Where": ["LOCATION"], "Who": ["PERSON", "ORGANIZATION"], "When": ["TIME", "DATE"],"Which":["LOCATION","PERSON", "TIME", "DATE", "MONEY", "PERCENT"],"What": ["LOCATION","PERSON", "TIME", "DATE", "MONEY", "PERCENT","ORGANIZATION"],"NAME":["LOCATION","PERSON", "TIME", "DATE", "MONEY", "PERCENT","ORGANIZATION"]}
+ques_words = ["who","where","when","what","why","how","which","whom"]
 dict_phrases = {}
 WL = WordNetLemmatizer()
 uniqueAnswers=[]
+stop = stopwords.words('english')
 
 def similarity(query_dict,top_docs_dict):
     query_no = query_dict.keys()
@@ -24,7 +27,8 @@ def similarity(query_dict,top_docs_dict):
         list_scores = []
         query = query_no[i]
         doc_dict = top_docs_dict[query]
-        query_text = query_dict[query]        
+        query_text = query_dict[query]    
+        query_text=" ".join([w for w in query_text.split(" ") if (w.lower() not in stop)])
         keys_list_docs = doc_dict.keys()
         matr = {}
         n_grams =[]
@@ -277,7 +281,8 @@ def getAnswers(pathToAnswerFile,query_dict):
         # What, Name uses POS tagging to extract NNP, we are not using POS tagging for these questions
         Query=query_dict[query]
         QueryNo= query;
-        list_scores=dict_phrases[QueryNo]       
+        list_scores=dict_phrases[QueryNo]
+        #print list_scores       
         f.write("qid"+" "+str(QueryNo)+"\n")
         expectedEntity=[]
         testHow=re.compile("How") 
@@ -388,10 +393,11 @@ def getAnswers(pathToAnswerFile,query_dict):
 
 def main():
     print "Process started", datetime.datetime.now().time()
-    questions_filename = "C:/Users/Shubhangi/Desktop/CORNELL COURSES/Spring 2015/NLP/Project2/pa2_data/pa2-release/qadata/dev/questions.txt"
-    pathTopDocs = "C:/Users/Shubhangi/Desktop/CORNELL COURSES/Spring 2015/NLP/Project2/pa2_data/pa2-release/topdocs/dev/"  
+    questions_filename = "questions.txt"
+    pathTopDocs = "dev1/"  
     
     query_dict = getquerydict(questions_filename)
+    
     print "Query Dictionary Generated", datetime.datetime.now().time()
     
     top_docs_dict = getTopDocsDict(pathTopDocs)
@@ -399,7 +405,9 @@ def main():
     
     similarity(query_dict,top_docs_dict)
 
-    pathToAnswerFile="C:/Users/Shubhangi/Desktop/CORNELL COURSES/Spring 2015/NLP/Project2/pa2_data/pa2-release/answer.txt"
+    pathToAnswerFile="answerss.txt"
+    pathtoClassifier='C:/Users/Nivedhitha/Downloads/stanford-ner-2014-06-16/stanford-ner-2014-06-16/classifiers/english.all.3class.distsim.crf.ser.gz'
+    pathtoNerjar='C:/Users/Nivedhitha/Downloads/stanford-ner-2014-06-16/stanford-ner-2014-06-16/stanford-ner.jar'
 
     getAnswers(pathToAnswerFile,query_dict)
     print "Process completed", datetime.datetime.now().time()
