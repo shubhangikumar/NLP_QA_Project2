@@ -283,13 +283,13 @@ def getAnswers(pathToAnswerFile,query_dict):
         list_scores=dict_phrases[QueryNo]
         f.write("qid"+" "+str(QueryNo)+"\n")
         expectedEntity=[]
-        testHow=re.compile("How",re.I) 
-        testWhen=re.compile("When",re.I)
-        testWhich=re.compile("Which",re.I)
-        testWho=re.compile("Who",re.I)
-        testWhat=re.compile("What",re.I)
-        testWhere=re.compile("Where",re.I)
-        testName=re.compile("Name",re.I)
+        testHow=re.compile(r'How|how') 
+        testWhen=re.compile(r'When|when')
+        testWhich=re.compile(r'Which|which')
+        testWho=re.compile(r'Who|who')
+        testWhat=re.compile(r'What|what')
+        testWhere=re.compile(r'Where|where')
+        testName=re.compile(r'Name|name')
         Qwords=Query.split(" ")
         if testHow.match(Query):
             temp=["many","long","much"] # "How many? How much? How long?
@@ -324,13 +324,16 @@ def getAnswers(pathToAnswerFile,query_dict):
             else:
                 expectedEntity=entity_labels["Who"]
         if testWhat.match(Query):
+            print Query
             testtemp=re.compile(r'(state|country|place|city|continent|located)')
             match=testtemp.findall(Query)
             if match!=[]:
+                print "hi"
                 expectedEntity=["LOCATION"]
             else:
                 expectedEntity=[] # POS
         if testName.match(Query): 
+            print Query
             testtemp=re.compile(r'(state|country|place|city|continent|located)')
             match=testtemp.findall(Query)
             if match!=[]:
@@ -401,8 +404,8 @@ def getAnswers(pathToAnswerFile,query_dict):
 
 def main():
     print "Process started", datetime.datetime.now().time()
-    questions_filename = "/Users/srinisha/Dropbox/cornell/hw/nlp/PA2/pa2/pa2-release/qadata/dev/questions.txt"
-    pathTopDocs = "/Users/srinisha/Dropbox/cornell/hw/nlp/PA2/pa2/pa2-release/topdocs/dev/"  
+    questions_filename = "/Users/srinisha/Dropbox/cornell/hw/nlp/PA2/pa2/pa2-release/qadata/dev/questions2.txt"
+    pathTopDocs = "/Users/srinisha/Dropbox/cornell/hw/nlp/PA2/pa2/pa2-release/topdocs/dev2/"  
     
     query_dict = getquerydict(questions_filename)
     print "Query Dictionary Generated", datetime.datetime.now().time()
